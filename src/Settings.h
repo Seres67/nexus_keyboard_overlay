@@ -53,7 +53,12 @@ extern bool IndicatorLong;
 extern bool IndicatorOutline;
 
 // Keybindings
-extern std::string ForwardKey;
+extern char ForwardKey;
+extern char BackwardsKey;
+extern char LeftKey;
+extern char RightKey;
+extern char JumpKey;
+
 } // namespace Settings
 
 #endif

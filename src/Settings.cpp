@@ -46,7 +46,19 @@ void Load(std::filesystem::path aPath) {
     Settings[IS_KEYBOARD_OVERLAY_VISIBLE].get_to<bool>(IsWidgetEnabled);
   }
   if (!Settings[FORWARD_KEYBINDING].is_null()) {
-    Settings[FORWARD_KEYBINDING].get_to<std::string>(ForwardKey);
+    Settings[FORWARD_KEYBINDING].get_to<char>(ForwardKey);
+  }
+  if (!Settings[LEFT_KEYBINDING].is_null()) {
+    Settings[LEFT_KEYBINDING].get_to<char>(LeftKey);
+  }
+  if (!Settings[RIGHT_KEYBINDING].is_null()) {
+    Settings[RIGHT_KEYBINDING].get_to<char>(RightKey);
+  }
+  if (!Settings[BACKWARDS_KEYBINDING].is_null()) {
+    Settings[BACKWARDS_KEYBINDING].get_to<char>(BackwardsKey);
+  }
+  if (!Settings[JUMP_KEYBINDING].is_null()) {
+    Settings[JUMP_KEYBINDING].get_to<char>(JumpKey);
   }
 }
 
@@ -66,7 +78,14 @@ void Save(std::filesystem::path aPath) {
 bool IsWidgetEnabled = true;
 float WidgetOffsetV = 0.0f;
 float WidgetWidth = 600.0f;
-std::string ForwardKey = "(null)";
+
+// Keybindings
+char ForwardKey = 0;
+char BackwardsKey = 0;
+char LeftKey = 0;
+char RightKey = 0;
+char JumpKey = 0;
+
 /* Widget derived */
 // float WidgetCenterX = WidgetWidth / 2;
 // float WidgetOffsetPerDegree = WidgetWidth / WidgetRangeDegrees;
