@@ -37,7 +37,6 @@ Texture *hrTex = nullptr;
 float padding = 5.0f;
 
 const char *WINDOW_RESIZED = "EV_WINDOW_RESIZED";
-const char *MUMBLE_IDENITY_UPDATED = "EV_MUMBLE_IDENTITY_UPDATED";
 const char *HR_TEX = "TEX_SEPARATOR_DETAIL";
 
 struct m_key_s {
