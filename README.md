@@ -4,8 +4,8 @@ A simple keyboard overlay to show keypresses, specifically made for JP speedrunn
 
 ## Usage
 
-Download & install [https://raidcore.gg/Nexus](Nexus) and run Guild Wars 2 once to setup Nexus.  
-Download the addon from the [https://github.com/Seres67/nexus_keyboard_overlay/releases](Releases), and put it in the addons directory.  
+Download & install [Nexus](https://raidcore.gg/Nexus) and run Guild Wars 2 once to setup Nexus.  
+Download the addon from the [Releases](https://github.com/Seres67/nexus_keyboard_overlay/releases), and put it in the addons directory.  
 You should be able to hot-load it (so, no need to restart the game), but if it doesn't work just restart the game.  
 
 ## Build it yourself
