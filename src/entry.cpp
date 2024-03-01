@@ -60,7 +60,7 @@ std::vector<struct m_key_s> KEYS = {
     {strdup("Jump"), strdup("Space"), ' ', false,
      std::chrono::steady_clock::now(), std::chrono::steady_clock::now()}};
 
-std::vector<bool> waitForKeybindings(5, false);
+int keybindIndexToChange = -1;
 
 char newKeybindingName[20];
 bool addingKeybinding = false;
@@ -120,19 +120,22 @@ void KeyUp(WPARAM key) {
   }
 }
 
-void setKeybinding(int index, WPARAM wParam) {
+void setKeybinding(WPARAM wParam) {
   char c = MapVirtualKey(wParam, MAPVK_VK_TO_CHAR);
-  waitForKeybindings[index] = false;
   if (wParam >= 'A' && wParam <= 'Z')
-    KEYS[index].code = c + 32;
+    KEYS[keybindIndexToChange].code = c + 32;
   else
-    KEYS[index].code = c;
+    KEYS[keybindIndexToChange].code = c;
   if (wParam == VK_SPACE)
-    KEYS[index].key_name = strdup("Space");
+    KEYS[keybindIndexToChange].key_name = strdup("Space");
   else {
-    KEYS[index].key_name[0] = c;
-    KEYS[index].key_name[1] = 0;
+    KEYS[keybindIndexToChange].key_name[0] = c;
+    KEYS[keybindIndexToChange].key_name[1] = 0;
   }
+  char log[80];
+  sprintf(log, "changing to %c", KEYS[keybindIndexToChange].code);
+  APIDefs->Log(ELogLevel_INFO, log);
+  keybindIndexToChange = -1;
 }
 
 void addKeybinding(WPARAM key) {
@@ -155,7 +158,6 @@ void addKeybinding(WPARAM key) {
   }
   new_key.binding_name = strdup(newKeybindingName);
   KEYS.emplace_back(new_key);
-  waitForKeybindings.emplace_back(false);
 }
 
 // void setMouseKeybinding(int index, WPARAM button) {
@@ -174,13 +176,10 @@ void addKeybinding(WPARAM key) {
 // }
 
 UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-  auto it =
-      std::find_if(std::begin(waitForKeybindings), std::end(waitForKeybindings),
-                   [](auto &b) { return b; });
   if (addingKeybinding) {
     if (uMsg == WM_KEYDOWN)
       addKeybinding(wParam);
-  } else if (it == std::end(waitForKeybindings)) {
+  } else if (keybindIndexToChange == -1) {
     switch (uMsg) {
     case WM_KEYDOWN:
       KeyDown(wParam);
@@ -198,14 +197,11 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       break;
     }
   } else {
-    for (int i = 0; i < KEYS.size(); ++i)
-      if (it - std::begin(waitForKeybindings) == i)
-        if (uMsg == WM_KEYDOWN) {
-          setKeybinding(i, wParam);
-        }
-    // else if (uMsg == WM_XBUTTONDOWN)
-    //   setMouseKeybinding(i, wParam);
+    if (uMsg == WM_KEYDOWN)
+      setKeybinding(wParam);
   }
+  // else if (uMsg == WM_XBUTTONDOWN)
+  //   setMouseKeybinding(i, wParam);
 
   if (uMsg == WM_XBUTTONDOWN) {
     char log[80];
@@ -311,7 +307,7 @@ void AddonOptions() {
     ImGui::Text("%s Key", KEYS[i].binding_name);
     ImGui::SameLine();
     if (ImGui::Button("...")) {
-      waitForKeybindings[i] = true;
+      keybindIndexToChange = i;
     }
     ImGui::SameLine();
     if (ImGui::Button("Delete Key")) {
