@@ -35,4 +35,4 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: keyboard_overlay.dll
-        path: ${{github.workspace}}/build/libnexus_keyboard_overlay.dll
+        path: ${{github.workspace}}/build/Release/nexus_keyboard_overlay.dll
