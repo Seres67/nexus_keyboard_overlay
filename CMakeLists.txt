@@ -23,10 +23,7 @@ if (LINUX)
 endif()
 
 if (WIN32)
-    message(STATUS "oh no, not you MSVC")
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /02")
-    # set_property(TARGET nexus_keyboard_overlay PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /02")
 endif()
 
 if (LINUX)
@@ -52,3 +49,4 @@ add_subdirectory(src/nlohmann)
 
 add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h)
 target_link_libraries(nexus_keyboard_overlay imgui json nexus mumble)
+set_property(TARGET nexus_keyboard_overlay PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
