@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdio>
 #include <ctime>
+#include <cwchar>
 #include <filesystem>
 #include <iterator>
 #include <string>
@@ -12,10 +13,8 @@
 #include "Settings.h"
 #include "Shared.h"
 
-// #include "Version.h"
-
 #include "imgui/imgui.h"
-#include "imgui/imgui_extensions.h"
+// #include "imgui/imgui_extensions.h"
 #include "nexus/Nexus.h"
 
 void OnWindowResized(void *aEventArgs);
@@ -61,7 +60,7 @@ std::vector<struct m_key_s> KEYS = {
     {strdup("Jump"), strdup("Space"), ' ', false,
      std::chrono::steady_clock::now(), std::chrono::steady_clock::now()}};
 
-std::array<bool, 5> waitForKeybindings = {0};
+std::vector<bool> waitForKeybindings(5, false);
 
 char newKeybindingName[20];
 bool addingKeybinding = false;
@@ -155,13 +154,24 @@ void addKeybinding(WPARAM key) {
     new_key.key_name[1] = 0;
   }
   new_key.binding_name = strdup(newKeybindingName);
-  char log[80];
-  sprintf(log, "%zu", KEYS.size());
-  APIDefs->Log(ELogLevel_INFO, log);
   KEYS.emplace_back(new_key);
-  sprintf(log, "%zu", KEYS.size());
-  APIDefs->Log(ELogLevel_INFO, log);
+  waitForKeybindings.emplace_back(false);
 }
+
+// void setMouseKeybinding(int index, WPARAM button) {
+//   waitForKeybindings[index] = false;
+//   KEYS[]
+//   if (wParam >= 'A' && wParam <= 'Z')
+//     KEYS[index].code = c + 32;
+//   else
+//     KEYS[index].code = c;
+//   if (wParam == VK_SPACE)
+//     KEYS[index].key_name = strdup("Space");
+//   else {
+//     KEYS[index].key_name[0] = c;
+//     KEYS[index].key_name[1] = 0;
+//   }
+// }
 
 UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   auto it =
@@ -178,6 +188,12 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case WM_KEYUP:
       KeyUp(wParam);
       break;
+    // case WM_XBUTTONDOWN:
+    //   MouseButtonDown(wParam);
+    //   break;
+    // case WM_XBUTTONUP:
+    //   MouseButtonUp(wParam);
+    //   break;
     default:
       break;
     }
@@ -187,8 +203,16 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (uMsg == WM_KEYDOWN) {
           setKeybinding(i, wParam);
         }
+    // else if (uMsg == WM_XBUTTONDOWN)
+    //   setMouseKeybinding(i, wParam);
   }
 
+  if (uMsg == WM_XBUTTONDOWN) {
+    char log[80];
+    sprintf(log, "keystate: %zu, button %zu", GET_KEYSTATE_WPARAM(wParam),
+            GET_XBUTTON_WPARAM(wParam));
+    APIDefs->Log(ELogLevel_INFO, log);
+  }
   return uMsg;
 }
 
