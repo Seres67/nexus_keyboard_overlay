@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdio>
 #include <ctime>
 #include <filesystem>
 #include <iterator>
@@ -61,7 +62,9 @@ std::vector<struct m_key_s> KEYS = {
      std::chrono::steady_clock::now(), std::chrono::steady_clock::now()}};
 
 std::array<bool, 5> waitForKeybindings = {0};
-std::array<bool, 5> pressedKey = {0};
+
+char newKeybindingName[20];
+bool addingKeybinding = false;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
                       LPVOID lpReserved) {
@@ -121,7 +124,7 @@ void KeyUp(WPARAM key) {
 void setKeybinding(int index, WPARAM wParam) {
   char c = MapVirtualKey(wParam, MAPVK_VK_TO_CHAR);
   waitForKeybindings[index] = false;
-  if ('A' >= wParam && 'Z' <= wParam)
+  if (wParam >= 'A' && wParam <= 'Z')
     KEYS[index].code = c + 32;
   else
     KEYS[index].code = c;
@@ -133,11 +136,41 @@ void setKeybinding(int index, WPARAM wParam) {
   }
 }
 
+void addKeybinding(WPARAM key) {
+  APIDefs->Log(ELogLevel_INFO, "begin");
+  char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
+  addingKeybinding = false;
+  struct m_key_s new_key;
+  if (key >= 'A' && key <= 'Z')
+    new_key.code = c + 32;
+  else
+    new_key.code = c;
+  if (key == VK_SPACE)
+    new_key.key_name = strdup("Space");
+  else {
+    new_key.key_name = (char *)malloc(sizeof(char) * 2);
+    if (!new_key.key_name)
+      return;
+    new_key.key_name[0] = c;
+    new_key.key_name[1] = 0;
+  }
+  new_key.binding_name = strdup(newKeybindingName);
+  char log[80];
+  sprintf(log, "%zu", KEYS.size());
+  APIDefs->Log(ELogLevel_INFO, log);
+  KEYS.emplace_back(new_key);
+  sprintf(log, "%zu", KEYS.size());
+  APIDefs->Log(ELogLevel_INFO, log);
+}
+
 UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   auto it =
       std::find_if(std::begin(waitForKeybindings), std::end(waitForKeybindings),
                    [](auto &b) { return b; });
-  if (it == std::end(waitForKeybindings)) {
+  if (addingKeybinding) {
+    if (uMsg == WM_KEYDOWN)
+      addKeybinding(wParam);
+  } else if (it == std::end(waitForKeybindings)) {
     switch (uMsg) {
     case WM_KEYDOWN:
       KeyDown(wParam);
@@ -148,7 +181,6 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     default:
       break;
     }
-
   } else {
     for (int i = 0; i < KEYS.size(); ++i)
       if (it - std::begin(waitForKeybindings) == i)
@@ -201,9 +233,10 @@ void keyPressedText(int index) {
   if (KEYS[index].pressed) {
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - KEYS[index].start_pressing);
-    ImGui::Text("%s pressed, %ld ms", KEYS[index].key_name, duration.count());
+    ImGui::Text("%s pressed, %ld ms", KEYS[index].binding_name,
+                duration.count());
   } else {
-    ImGui::Text("%s not pressed, %ld ms", KEYS[index].key_name,
+    ImGui::Text("%s not pressed, %ld ms", KEYS[index].binding_name,
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                     KEYS[index].end_pressing - KEYS[index].start_pressing)
                     .count());
@@ -240,6 +273,8 @@ void AddonRender() {
   }
 }
 
+void deleteKey(int index) { KEYS.erase(KEYS.begin() + index); }
+
 void AddonOptions() {
   ImGui::Text("Keyboard Overlay");
   ImGui::TextDisabled("Widget");
@@ -247,8 +282,6 @@ void AddonOptions() {
     Settings::Settings[IS_KEYBOARD_OVERLAY_VISIBLE] = Settings::IsWidgetEnabled;
     Settings::Save(SettingsPath);
   }
-  ImGui::Text("Forward Key");
-  ImGui::SameLine();
   for (int i = 0; i < KEYS.size(); ++i) {
     ImGui::PushID(i);
     ImGui::Text("%s Key", KEYS[i].binding_name);
@@ -256,7 +289,18 @@ void AddonOptions() {
     if (ImGui::Button("...")) {
       waitForKeybindings[i] = true;
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete Key")) {
+      deleteKey(i);
+    }
     ImGui::PopID();
+  }
+  ImGui::Text("New Key Name: ");
+  ImGui::SameLine();
+  ImGui::InputText("##newKeyName", newKeybindingName, 20);
+  ImGui::SameLine();
+  if (ImGui::Button("Add Key")) {
+    addingKeybinding = true;
   }
 }
 
