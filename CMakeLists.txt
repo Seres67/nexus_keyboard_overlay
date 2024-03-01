@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
+set(CMAKE_CXX_STANDARD 17)
+
 if (LINUX)
     message(STATUS "we're on linux ...")
     set(CMAKE_SYSTEM_NAME Windows)
-    set(CMAKE_CXX_STANDARD 17)
     set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 
     # cross compilers to use for C, C++ and Fortran
@@ -22,6 +23,7 @@ if (LINUX)
 endif()
 
 if (MSVC)
+    message(STATUS "oh no, not you MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /02")
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug")
 endif()
