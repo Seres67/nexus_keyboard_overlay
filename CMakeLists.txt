@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_CXX_STANDARD 17)
 set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 
 # cross compilers to use for C, C++ and Fortran
