@@ -4,4 +4,5 @@
 #define IDB_TEX1 103
 #define IDB_TEX2 104
 
+
 #endif // !NEXUS_KEYBOARD_OVERLAY_RESOURCE_H

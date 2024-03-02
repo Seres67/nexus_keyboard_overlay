@@ -1,5 +1,5 @@
 #include "resource.h"
 #include "winres.h"
 
-IDB_TEX1                TEXTURE                     "z_pressed.png"
-IDB_TEX2                TEXTURE                     "keyboard.png"
+IDB_TEX1                PNG                     "z_pressed.png"
+IDB_TEX2                PNG                     "keyboard.png"
