@@ -1,5 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
+#define NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
 
 #include <mutex>
 
@@ -53,4 +53,4 @@ extern std::string EliteKey;
 
 } // namespace Settings
 
-#endif
+#endif // !NEXUS_KEYBOARD_OVERLAY_SETTINGS_H

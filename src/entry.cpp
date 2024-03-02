@@ -275,10 +275,6 @@ void keyPressedText(int index) {
 }
 
 void AddonRender() {
-  if (!NexusLink->IsGameplay) {
-    return;
-  }
-
   if (Settings::IsWidgetEnabled) {
     ImVec2 initialPos = ImGui::GetCursorPos();
     // ImGui::ShowUserGuide();
@@ -303,7 +299,7 @@ void AddonRender() {
             ImGui::Image(textures_pressed[code]->Resource, ImVec2(50, 50));
           } else {
             keyPressedText(i);
-            APIDefs->LoadTextureFromResource("TEX_Z_PRESSED", IDB_PNG1, hSelf,
+            APIDefs->LoadTextureFromResource("TEX_Z_PRESSED", IDB_TEX1, hSelf,
                                              ReceiveTexture);
           }
         }
@@ -312,7 +308,8 @@ void AddonRender() {
         ImGui::SetCursorPos(initialPos);
         ImGui::Image(grid_texture->Resource, ImVec2(600, 400));
       } else {
-        APIDefs->LoadTextureFromFile("TEX_GRID", "grid.png", ReceiveTexture);
+        APIDefs->LoadTextureFromResource("TEX_GRID", IDB_TEX2, hSelf,
+                                         ReceiveTexture);
       }
     }
     ImGui::PopFont();

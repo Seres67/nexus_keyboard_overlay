@@ -1,5 +1,5 @@
-#ifndef SHARED_H
-#define SHARED_H
+#ifndef NEXUS_KEYBOARD_OVERLAY_SHARED_H
+#define NEXUS_KEYBOARD_OVERLAY_SHARED_H
 
 #include "mumble/Mumble.h"
 #include "nexus/Nexus.h"
@@ -10,4 +10,4 @@ extern Mumble::Data *MumbleLink;
 extern Mumble::Identity *MumbleIdentity;
 extern NexusLinkData *NexusLink;
 
-#endif
+#endif // !NEXUS_KEYBOARD_OVERLAY_SHARED_H
