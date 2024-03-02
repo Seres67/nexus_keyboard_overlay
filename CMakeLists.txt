@@ -39,5 +39,6 @@ add_subdirectory(src/nlohmann)
 
 # configure_file(src/overlay.rc src/overlay.rc.in)
 
-add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h src/overlay.rc)
+add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h)
+target_sources(nexus_keyboard_overlay PRIVATE "src/overlay.rc")
 target_link_libraries(nexus_keyboard_overlay imgui json nexus mumble)

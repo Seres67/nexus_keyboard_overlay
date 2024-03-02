@@ -10,6 +10,8 @@
 #include "Settings.h"
 #include "Shared.h"
 
+#include "resource.h"
+
 #include "imgui/imgui.h"
 // #include "imgui/imgui_extensions.h"
 #include "nexus/Nexus.h"
@@ -301,8 +303,8 @@ void AddonRender() {
             ImGui::Image(textures_pressed[code]->Resource, ImVec2(50, 50));
           } else {
             keyPressedText(i);
-            APIDefs->LoadTextureFromFile("TEX_Z_PRESSED", "z_pressed.png",
-                                         ReceiveTexture);
+            APIDefs->LoadTextureFromResource("TEX_Z_PRESSED", IDB_PNG1, hSelf,
+                                             ReceiveTexture);
           }
         }
       }
