@@ -82,8 +82,8 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef() {
   AddonDef.Signature = 17;
   AddonDef.APIVersion = NEXUS_API_VERSION;
   AddonDef.Name = "Keyboard Overlay";
-  AddonDef.Version.Major = 1;
-  AddonDef.Version.Minor = 0;
+  AddonDef.Version.Major = 0;
+  AddonDef.Version.Minor = 2;
   AddonDef.Version.Build = 0;
   AddonDef.Version.Revision = 0;
   AddonDef.Author = "Seres67";
@@ -92,7 +92,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef() {
   AddonDef.Unload = AddonUnload;
   AddonDef.Flags = EAddonFlags_None;
   AddonDef.Provider = EUpdateProvider_GitHub;
-  AddonDef.UpdateLink = "https://github.com/Seres67/nexus-keyboard-overlay";
+  AddonDef.UpdateLink = "https://github.com/Seres67/nexus_keyboard_overlay";
 
   return &AddonDef;
 }
@@ -130,7 +130,7 @@ void setKeybinding(WPARAM wParam) {
     KEYS[keybindIndexToChange].key_name[1] = 0;
   }
   char log[80];
-  sprintf(log, "changing to %c", KEYS[keybindIndexToChange].code);
+  sprintf(log, "changing to '%c'", KEYS[keybindIndexToChange].code);
   APIDefs->Log(ELogLevel_INFO, log);
   keybindIndexToChange = -1;
 }
@@ -268,6 +268,11 @@ void AddonRender() {
   if (Settings::IsWidgetEnabled) {
     ImGuiIO &io = ImGui::GetIO();
 
+    // ImGui::ShowUserGuide();
+    // ImGui::ShowDemoWindow();
+    // ImGui::ShowStyleEditor();
+    // ImGui::ShowStyleSelector("label");
+    // ImGui::ShowMetricsWindow();
     /* use Menomonia */
     ImGui::PushFont(NexusLink->Font);
 
