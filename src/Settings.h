@@ -34,30 +34,22 @@ void Save(std::filesystem::path aPath);
 extern bool IsWidgetEnabled;
 extern float WidgetOffsetV;
 extern float WidgetWidth;
-extern float WidgetRangeDegrees;
-extern float WidgetStepDegrees;
-
-/* Widget derived */
-extern float WidgetCenterX;
-extern float WidgetOffsetPerDegree;
 
 /* World/Agent */
 extern bool IsAgentEnabled;
 
-/* Indicator */
-extern bool IsIndicatorEnabled;
-extern bool IsIndicatorLocked;
-extern std::string IndicatorPrefix;
-extern char IndicatorPrefixC[64];
-extern bool IndicatorLong;
-extern bool IndicatorOutline;
-
 // Keybindings
-extern char ForwardKey;
-extern char BackwardsKey;
-extern char LeftKey;
-extern char RightKey;
-extern char JumpKey;
+extern std::string ForwardKey;
+extern std::string BackwardsKey;
+extern std::string LeftKey;
+extern std::string RightKey;
+extern std::string JumpKey;
+extern std::string WeaponSwapKey;
+extern std::string HealKey;
+extern std::string Utility1Key;
+extern std::string Utility2Key;
+extern std::string Utility3Key;
+extern std::string EliteKey;
 
 } // namespace Settings
 

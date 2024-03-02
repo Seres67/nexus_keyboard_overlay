@@ -2,6 +2,8 @@
 
 A simple keyboard overlay to show keypresses, specifically made for JP speedrunning.
 
+[[JP] Community Discord](https://gw2jp.net/discord)
+
 ## Usage
 
 Download & install [Nexus](https://raidcore.gg/Nexus) and run Guild Wars 2 once to setup Nexus.  

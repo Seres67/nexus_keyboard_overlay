@@ -13,6 +13,8 @@
 #include "imgui/imgui.h"
 // #include "imgui/imgui_extensions.h"
 #include "nexus/Nexus.h"
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
 
 void OnWindowResized(void *aEventArgs);
 void ReceiveTexture(const char *aIdentifier, Texture *aTexture);
@@ -33,34 +35,34 @@ Texture *hrTex = nullptr;
 
 float padding = 5.0f;
 
+int keybindIndexToChange = -1;
+char newKeybindingName[20];
+bool addingKeybinding = false;
+
 const char *WINDOW_RESIZED = "EV_WINDOW_RESIZED";
 const char *HR_TEX = "TEX_SEPARATOR_DETAIL";
 
 struct m_key_s {
-  char *binding_name;
-  char *key_name;
+  std::string binding_name;
+  std::string key_name;
   char code;
   bool pressed;
   std::chrono::time_point<std::chrono::steady_clock> start_pressing;
   std::chrono::time_point<std::chrono::steady_clock> end_pressing;
 };
 
-std::vector<struct m_key_s> KEYS = {
-    {strdup("Forward"), strdup("Z"), 'z', false,
-     std::chrono::steady_clock::now(), std::chrono::steady_clock::now()},
-    {strdup("Left"), strdup("Q"), 'q', false, std::chrono::steady_clock::now(),
-     std::chrono::steady_clock::now()},
-    {strdup("Backwards"), strdup("S"), 's', false,
-     std::chrono::steady_clock::now(), std::chrono::steady_clock::now()},
-    {strdup("Right"), strdup("D"), 'd', false, std::chrono::steady_clock::now(),
-     std::chrono::steady_clock::now()},
-    {strdup("Jump"), strdup("Space"), ' ', false,
-     std::chrono::steady_clock::now(), std::chrono::steady_clock::now()}};
+std::vector<struct m_key_s> KEYS;
 
-int keybindIndexToChange = -1;
+void to_json(json &j, const struct m_key_s &p) {
+  j = json{
+      {"name", p.binding_name}, {"key_name", p.key_name}, {"key_code", p.code}};
+}
 
-char newKeybindingName[20];
-bool addingKeybinding = false;
+void from_json(const json &j, struct m_key_s &p) {
+  j.at("name").get_to(p.binding_name);
+  j.at("key_name").get_to(p.key_name);
+  j.at("key_code").get_to(p.code);
+}
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
                       LPVOID lpReserved) {
@@ -79,11 +81,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
 }
 
 extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef() {
-  AddonDef.Signature = 17;
+  AddonDef.Signature = -918234798;
   AddonDef.APIVersion = NEXUS_API_VERSION;
   AddonDef.Name = "Keyboard Overlay";
   AddonDef.Version.Major = 0;
-  AddonDef.Version.Minor = 2;
+  AddonDef.Version.Minor = 3;
   AddonDef.Version.Build = 0;
   AddonDef.Version.Revision = 0;
   AddonDef.Author = "Seres67";
@@ -124,11 +126,15 @@ void setKeybinding(WPARAM wParam) {
   else
     KEYS[keybindIndexToChange].code = c;
   if (wParam == VK_SPACE)
-    KEYS[keybindIndexToChange].key_name = strdup("Space");
+    KEYS[keybindIndexToChange].key_name = std::string("Space");
   else {
-    KEYS[keybindIndexToChange].key_name[0] = c;
-    KEYS[keybindIndexToChange].key_name[1] = 0;
+    KEYS[keybindIndexToChange].key_name = c;
   }
+  char keybinding_setting[30];
+  sprintf(keybinding_setting, "%sKeybinding",
+          KEYS[keybindIndexToChange].binding_name.c_str());
+  APIDefs->Log(ELogLevel_INFO, keybinding_setting);
+  Settings::Settings[keybinding_setting] = KEYS[keybindIndexToChange].key_name;
   char log[80];
   sprintf(log, "changing to '%c'", KEYS[keybindIndexToChange].code);
   APIDefs->Log(ELogLevel_INFO, log);
@@ -145,15 +151,12 @@ void addKeybinding(WPARAM key) {
   else
     new_key.code = c;
   if (key == VK_SPACE)
-    new_key.key_name = strdup("Space");
+    new_key.key_name = std::string("Space");
   else {
-    new_key.key_name = (char *)malloc(sizeof(char) * 2);
-    if (!new_key.key_name)
-      return;
-    new_key.key_name[0] = c;
-    new_key.key_name[1] = 0;
+    new_key.key_name = c;
   }
   new_key.binding_name = strdup(newKeybindingName);
+  memset(newKeybindingName, 0, sizeof(newKeybindingName));
   KEYS.emplace_back(new_key);
 }
 
@@ -196,9 +199,9 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   } else {
     if (uMsg == WM_KEYDOWN)
       setKeybinding(wParam);
+    // else if (uMsg == WM_XBUTTONDOWN)
+    //   setMouseKeybinding(i, wParam);
   }
-  // else if (uMsg == WM_XBUTTONDOWN)
-  //   setMouseKeybinding(i, wParam);
 
   if (uMsg == WM_XBUTTONDOWN) {
     char log[80];
@@ -230,8 +233,12 @@ void AddonLoad(AddonAPI *aApi) {
   std::filesystem::create_directory(AddonPath);
   Settings::Load(SettingsPath);
 
+  if (!Settings::Settings["AllKeybindings"].is_null())
+    Settings::Settings["AllKeybindings"].get_to(KEYS);
+
   OnWindowResized(nullptr); // initialise self
 }
+
 void AddonUnload() {
   APIDefs->UnregisterRender(AddonOptions);
   APIDefs->UnregisterRender(AddonRender);
@@ -243,6 +250,8 @@ void AddonUnload() {
   MumbleLink = nullptr;
   NexusLink = nullptr;
 
+  json settings_json = KEYS;
+  Settings::Settings["AllKeybindings"] = settings_json;
   Settings::Save(SettingsPath);
 }
 
@@ -250,10 +259,10 @@ void keyPressedText(int index) {
   if (KEYS[index].pressed) {
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - KEYS[index].start_pressing);
-    ImGui::Text("%s pressed, %ld ms", KEYS[index].binding_name,
+    ImGui::Text("%s pressed, %ld ms", KEYS[index].binding_name.c_str(),
                 duration.count());
   } else {
-    ImGui::Text("%s not pressed, %ld ms", KEYS[index].binding_name,
+    ImGui::Text("%s not pressed, %ld ms", KEYS[index].binding_name.c_str(),
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                     KEYS[index].end_pressing - KEYS[index].start_pressing)
                     .count());
@@ -266,8 +275,6 @@ void AddonRender() {
   }
 
   if (Settings::IsWidgetEnabled) {
-    ImGuiIO &io = ImGui::GetIO();
-
     // ImGui::ShowUserGuide();
     // ImGui::ShowDemoWindow();
     // ImGui::ShowStyleEditor();
@@ -275,22 +282,17 @@ void AddonRender() {
     // ImGui::ShowMetricsWindow();
     /* use Menomonia */
     ImGui::PushFont(NexusLink->Font);
-
-    /* set width and position */
     ImGui::PushItemWidth(1200.f);
     if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0,
-                     ImGuiWindowFlags_NoFocusOnAppearing |
+                     ImGuiWindowFlags_NoTitleBar |
+                         ImGuiWindowFlags_NoFocusOnAppearing |
                          ImGuiWindowFlags_NoBringToFrontOnFocus |
                          ImGuiWindowFlags_NoScrollbar)) {
 
-      /* use Menomonia but bigger */
-      ImGui::PushFont(NexusLink->FontBig);
       for (int i = 0; i < KEYS.size(); ++i)
         keyPressedText(i);
     }
-
     ImGui::PopFont();
-
     ImGui::End();
   }
 }
@@ -306,9 +308,11 @@ void AddonOptions() {
   }
   for (int i = 0; i < KEYS.size(); ++i) {
     ImGui::PushID(i);
-    ImGui::Text("%s Key", KEYS[i].binding_name);
+    ImGui::Text("%s Key", KEYS[i].binding_name.c_str());
     ImGui::SameLine();
-    if (ImGui::Button("...")) {
+    if (keybindIndexToChange == i) {
+      ImGui::Button("Press key to bind");
+    } else if (ImGui::Button(KEYS[i].key_name.c_str())) {
       keybindIndexToChange = i;
     }
     ImGui::SameLine();
@@ -321,7 +325,9 @@ void AddonOptions() {
   ImGui::SameLine();
   ImGui::InputText("##newKeyName", newKeybindingName, 20);
   ImGui::SameLine();
-  if (ImGui::Button("Add Key")) {
+  if (addingKeybinding) {
+    ImGui::Button("Press key to bind");
+  } else if (ImGui::Button("Add Key")) {
     addingKeybinding = true;
   }
 }
