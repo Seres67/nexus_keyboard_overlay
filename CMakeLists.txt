@@ -9,7 +9,7 @@ set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 set(CMAKE_C_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-gcc)
 set(CMAKE_CXX_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-g++)
 set(CMAKE_Fortran_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-gfortran)
-set(CMAKE_RC_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-windres)
+set(CMAKE_RC_COMPILER /usr/bin/${TOOLCHAIN_PREFIX}-windres)
 
 # target environment on the build host system
 set(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
@@ -37,5 +37,7 @@ add_subdirectory(src/nexus)
 # load nlohmann/json as a cmake project
 add_subdirectory(src/nlohmann)
 
-add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h)
+# configure_file(src/overlay.rc src/overlay.rc.in)
+
+add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h src/overlay.rc)
 target_link_libraries(nexus_keyboard_overlay imgui json nexus mumble)

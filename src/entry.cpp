@@ -35,6 +35,9 @@ Texture *hrTex = nullptr;
 
 float padding = 5.0f;
 
+std::unordered_map<char, Texture *> textures_pressed;
+Texture *grid_texture;
+
 int keybindIndexToChange = -1;
 char newKeybindingName[20];
 bool addingKeybinding = false;
@@ -275,6 +278,7 @@ void AddonRender() {
   }
 
   if (Settings::IsWidgetEnabled) {
+    ImVec2 initialPos = ImGui::GetCursorPos();
     // ImGui::ShowUserGuide();
     // ImGui::ShowDemoWindow();
     // ImGui::ShowStyleEditor();
@@ -289,8 +293,25 @@ void AddonRender() {
                          ImGuiWindowFlags_NoBringToFrontOnFocus |
                          ImGuiWindowFlags_NoScrollbar)) {
 
-      for (int i = 0; i < KEYS.size(); ++i)
-        keyPressedText(i);
+      for (int i = 0; i < KEYS.size(); ++i) {
+        char code = KEYS[i].code;
+        if (KEYS[i].pressed) {
+          if (textures_pressed[code] && textures_pressed[code]->Resource) {
+            ImGui::SetCursorPos(initialPos);
+            ImGui::Image(textures_pressed[code]->Resource, ImVec2(50, 50));
+          } else {
+            keyPressedText(i);
+            APIDefs->LoadTextureFromFile("TEX_Z_PRESSED", "z_pressed.png",
+                                         ReceiveTexture);
+          }
+        }
+      }
+      if (grid_texture && grid_texture->Resource) {
+        ImGui::SetCursorPos(initialPos);
+        ImGui::Image(grid_texture->Resource, ImVec2(600, 400));
+      } else {
+        APIDefs->LoadTextureFromFile("TEX_GRID", "grid.png", ReceiveTexture);
+      }
     }
     ImGui::PopFont();
     ImGui::End();
@@ -340,5 +361,9 @@ void ReceiveTexture(const char *aIdentifier, Texture *aTexture) {
 
   if (str == HR_TEX) {
     hrTex = aTexture;
+  } else if (str == "TEX_GRID") {
+    grid_texture = aTexture;
+  } else if (str == "TEX_Z_PRESSED") {
+    textures_pressed['z'] = aTexture;
   }
 }
