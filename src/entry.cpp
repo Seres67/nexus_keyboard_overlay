@@ -52,6 +52,7 @@ struct m_key_s {
   std::string key_name;
   char code;
   bool pressed;
+  ImVec2 posDelta;
   std::chrono::time_point<std::chrono::steady_clock> start_pressing;
   std::chrono::time_point<std::chrono::steady_clock> end_pressing;
 };
@@ -274,9 +275,11 @@ void keyPressedText(int index) {
   }
 }
 
+ImVec2 pos = ImVec2(62, 212);
+
 void AddonRender() {
   if (Settings::IsWidgetEnabled) {
-    ImVec2 initialPos = ImGui::GetCursorPos();
+    // ImVec2 initialPos = ImGui::GetCursorPos();
     // ImGui::ShowUserGuide();
     // ImGui::ShowDemoWindow();
     // ImGui::ShowStyleEditor();
@@ -291,12 +294,31 @@ void AddonRender() {
                          ImGuiWindowFlags_NoBringToFrontOnFocus |
                          ImGuiWindowFlags_NoScrollbar)) {
 
+      if (grid_texture && grid_texture->Resource) {
+        // ImGui::SetCursorPos(initialPos);
+        ImGui::Image(grid_texture->Resource, ImVec2(720, 320));
+      } else {
+        APIDefs->LoadTextureFromResource("TEX_GRID", IDB_TEX2, hSelf,
+                                         ReceiveTexture);
+      }
       for (int i = 0; i < KEYS.size(); ++i) {
         char code = KEYS[i].code;
         if (KEYS[i].pressed) {
           if (textures_pressed[code] && textures_pressed[code]->Resource) {
-            ImGui::SetCursorPos(initialPos);
-            ImGui::Image(textures_pressed[code]->Resource, ImVec2(50, 50));
+            // ImVec2 pos(initialPos.x + 62, initialPos.y + 212);
+            ImGui::SetCursorPos(pos);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                  ImVec4(0.f, 0.f, 0.f, 0.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                  ImVec4(0.f, 0.f, 0.f, 0.f));
+            if (ImGui::ImageButton(textures_pressed[code]->Resource,
+                                   ImVec2(48, 48))) {
+              pos = ImGui::GetCursorPos();
+              // ImGui::SetCursorPos(ImGui::GetMousePos());
+            }
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar();
           } else {
             keyPressedText(i);
             APIDefs->LoadTextureFromResource("TEX_Z_PRESSED", IDB_TEX1, hSelf,
@@ -304,13 +326,12 @@ void AddonRender() {
           }
         }
       }
-      if (grid_texture && grid_texture->Resource) {
-        ImGui::SetCursorPos(initialPos);
-        ImGui::Image(grid_texture->Resource, ImVec2(600, 400));
-      } else {
-        APIDefs->LoadTextureFromResource("TEX_GRID", IDB_TEX2, hSelf,
-                                         ReceiveTexture);
-      }
+      ImGui::Text("Cursor pos: %d %d", ImGui::GetCursorPos().x,
+                  ImGui::GetCursorPos().y);
+      ImGui::Text("Cursor screen pos: %d %d", ImGui::GetCursorScreenPos().x,
+                  ImGui::GetCursorScreenPos().y);
+      ImGui::Text("Mouse pos: %d %d", ImGui::GetMousePos().x,
+                  ImGui::GetMousePos().y);
     }
     ImGui::PopFont();
     ImGui::End();
