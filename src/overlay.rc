@@ -1,5 +1,80 @@
 #include "resource.h"
 #include "winres.h"
 
-IDB_TEX1                PNG                     "z_pressed.png"
-IDB_TEX2                PNG                     "keyboard.png"
+//103 PNG "a_not_pressed.png"
+//104 PNG "a_pressed.png"
+
+//105 PNG "b_not_pressed.png"
+//106 PNG "b_pressed.png"
+
+//107 PNG "c_not_pressed.png"
+//108 PNG "c_pressed.png"
+
+109 PNG "d_not_pressed.png"
+110 PNG "d_pressed.png"
+
+//111 PNG "e_not_pressed.png"
+//112 PNG "e_pressed.png"
+
+//113 PNG "f_not_pressed.png"
+//114 PNG "f_pressed.png"
+
+//115 PNG "g_not_pressed.png"
+//116 PNG "g_pressed.png"
+
+//117 PNG "h_not_pressed.png"
+//118 PNG "h_pressed.png"
+
+//119 PNG "i_not_pressed.png"
+//120 PNG "i_pressed.png"
+
+//121 PNG "j_not_pressed.png"
+//122 PNG "j_pressed.png"
+
+//123 PNG "k_not_pressed.png"
+//124 PNG "k_pressed.png"
+
+//125 PNG "l_not_pressed.png"
+//126 PNG "l_pressed.png"
+
+//127 PNG "m_not_pressed.png"
+//128 PNG "m_pressed.png"
+
+//129 PNG "n_not_pressed.png"
+//130 PNG "n_pressed.png"
+
+//131 PNG "o_not_pressed.png"
+//132 PNG "o_pressed.png"
+
+//133 PNG "p_not_pressed.png"
+//134 PNG "p_pressed.png"
+
+135 PNG "q_not_pressed.png"
+136 PNG "q_pressed.png"
+
+//137 PNG "r_not_pressed.png"
+//138 PNG "r_pressed.png"
+
+139 PNG "s_not_pressed.png"
+140 PNG "s_pressed.png"
+
+//141 PNG "t_not_pressed.png"
+//142 PNG "t_pressed.png"
+
+//143 PNG "u_not_pressed.png"
+//144 PNG "u_pressed.png"
+
+//145 PNG "v_not_pressed.png"
+//146 PNG "v_pressed.png"
+
+//147 PNG "w_not_pressed.png"
+//148 PNG "w_pressed.png"
+
+//149 PNG "x_not_pressed.png"
+//150 PNG "x_pressed.png"
+
+//151 PNG "y_not_pressed.png"
+//152 PNG "y_pressed.png"
+
+153 PNG "z_not_pressed.png"
+154 PNG "z_pressed.png"
