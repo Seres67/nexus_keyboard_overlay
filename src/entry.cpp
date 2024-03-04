@@ -3,6 +3,8 @@
 #include <ctime>
 #include <cwchar>
 #include <filesystem>
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -37,10 +39,9 @@ Texture *hrTex = nullptr;
 
 float padding = 5.0f;
 
-std::unordered_map<char, Texture *> textures_pressed;
 Texture *grid_texture;
 
-int keybindIndexToChange = -1;
+char keybindingToChange = -1;
 char newKeybindingName[20];
 bool addingKeybinding = false;
 
@@ -52,22 +53,31 @@ struct m_key_s {
   std::string key_name;
   char code;
   bool pressed;
-  ImVec2 posDelta;
+  ImVec2 pos_delta;
+  std::weak_ptr<Texture> not_pressed_tex;
+  std::weak_ptr<Texture> pressed_tex;
   std::chrono::time_point<std::chrono::steady_clock> start_pressing;
   std::chrono::time_point<std::chrono::steady_clock> end_pressing;
 };
 
-std::vector<struct m_key_s> KEYS;
+std::map<char, struct m_key_s> keys;
+std::unordered_map<char, Texture *> textures_not_pressed;
+std::unordered_map<char, Texture *> textures_pressed;
 
 void to_json(json &j, const struct m_key_s &p) {
-  j = json{
-      {"name", p.binding_name}, {"key_name", p.key_name}, {"key_code", p.code}};
+  j = json{{"name", p.binding_name},
+           {"key_name", p.key_name},
+           {"key_code", p.code},
+           {"pos_x", p.pos_delta.x},
+           {"pos_y", p.pos_delta.y}};
 }
 
 void from_json(const json &j, struct m_key_s &p) {
   j.at("name").get_to(p.binding_name);
   j.at("key_name").get_to(p.key_name);
   j.at("key_code").get_to(p.code);
+  j.at("pos_x").get_to(p.pos_delta.x);
+  j.at("pos_y").get_to(p.pos_delta.y);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
@@ -105,22 +115,24 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef() {
   return &AddonDef;
 }
 
-void KeyDown(WPARAM key) {
-  for (int i = 0; i < KEYS.size(); ++i) {
-    if (!KEYS[i].pressed &&
-        key == VkKeyScanEx(KEYS[i].code, GetKeyboardLayout(0))) {
-      KEYS[i].pressed = true;
-      KEYS[i].start_pressing = std::chrono::steady_clock::now();
+void KeyDown(WPARAM i_key) {
+  char log[80];
+  sprintf(log, "key down is %c", i_key);
+  for (auto &&key : keys) {
+    if (!key.second.pressed &&
+        i_key == VkKeyScanEx(key.second.code, GetKeyboardLayout(0))) {
+      key.second.pressed = true;
+      key.second.start_pressing = std::chrono::steady_clock::now();
     }
   }
 }
 
-void KeyUp(WPARAM key) {
-  for (int i = 0; i < KEYS.size(); ++i) {
-    if (KEYS[i].pressed &&
-        key == VkKeyScanEx(KEYS[i].code, GetKeyboardLayout(0))) {
-      KEYS[i].pressed = false;
-      KEYS[i].end_pressing = std::chrono::steady_clock::now();
+void KeyUp(WPARAM i_key) {
+  for (auto &&key : keys) {
+    if (key.second.pressed &&
+        i_key == VkKeyScanEx(key.second.code, GetKeyboardLayout(0))) {
+      key.second.pressed = false;
+      key.second.end_pressing = std::chrono::steady_clock::now();
     }
   }
 }
@@ -128,42 +140,41 @@ void KeyUp(WPARAM key) {
 void setKeybinding(WPARAM wParam) {
   char c = MapVirtualKey(wParam, MAPVK_VK_TO_CHAR);
   if (wParam >= 'A' && wParam <= 'Z')
-    KEYS[keybindIndexToChange].code = c + 32;
+    keys[keybindingToChange].code = c + 32;
   else
-    KEYS[keybindIndexToChange].code = c;
+    keys[keybindingToChange].code = c;
   if (wParam == VK_SPACE)
-    KEYS[keybindIndexToChange].key_name = std::string("Space");
+    keys[keybindingToChange].key_name = std::string("Space");
   else {
-    KEYS[keybindIndexToChange].key_name = c;
+    keys[keybindingToChange].key_name = c;
   }
   char keybinding_setting[30];
   sprintf(keybinding_setting, "%sKeybinding",
-          KEYS[keybindIndexToChange].binding_name.c_str());
+          keys[keybindingToChange].binding_name.c_str());
   APIDefs->Log(ELogLevel_INFO, keybinding_setting);
-  Settings::Settings[keybinding_setting] = KEYS[keybindIndexToChange].key_name;
+  Settings::Settings[keybinding_setting] = keys[keybindingToChange].key_name;
   char log[80];
-  sprintf(log, "changing to '%c'", KEYS[keybindIndexToChange].code);
+  sprintf(log, "changing to '%c'", keys[keybindingToChange].code);
   APIDefs->Log(ELogLevel_INFO, log);
-  keybindIndexToChange = -1;
+  keybindingToChange = -1;
 }
 
 void addKeybinding(WPARAM key) {
-  APIDefs->Log(ELogLevel_INFO, "begin");
   char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
+
   addingKeybinding = false;
   struct m_key_s new_key;
   if (key >= 'A' && key <= 'Z')
-    new_key.code = c + 32;
+    keys[c].code = c + 32;
   else
-    new_key.code = c;
+    keys[c].code = c;
   if (key == VK_SPACE)
-    new_key.key_name = std::string("Space");
+    keys[c].key_name = std::string("Space");
   else {
-    new_key.key_name = c;
+    keys[c].key_name = c;
   }
-  new_key.binding_name = strdup(newKeybindingName);
+  keys[c].binding_name = strdup(newKeybindingName);
   memset(newKeybindingName, 0, sizeof(newKeybindingName));
-  KEYS.emplace_back(new_key);
 }
 
 // void setMouseKeybinding(int index, WPARAM button) {
@@ -185,7 +196,7 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   if (addingKeybinding) {
     if (uMsg == WM_KEYDOWN)
       addKeybinding(wParam);
-  } else if (keybindIndexToChange == -1) {
+  } else if (keybindingToChange == -1) {
     switch (uMsg) {
     case WM_KEYDOWN:
       KeyDown(wParam);
@@ -218,12 +229,28 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   return uMsg;
 }
 
+void LoadTextures() {
+  char tex_name[19];
+  char tex_pressed_name[15];
+  int id = 103;
+  for (char c = 'A'; c <= 'Z'; ++c, id += 2) {
+    sprintf(tex_name, "TEX_%c_NOT_PRESSED", c);
+    sprintf(tex_pressed_name, "TEX_%c_PRESSED", c);
+    APIDefs->LoadTextureFromResource(tex_name, id, hSelf, ReceiveTexture);
+    APIDefs->LoadTextureFromResource(tex_pressed_name, id + 1, hSelf,
+                                     ReceiveTexture);
+  }
+  APIDefs->Log(ELogLevel_DEBUG, "finished loading all textures!");
+}
+
 void AddonLoad(AddonAPI *aApi) {
   APIDefs = aApi;
   ImGui::SetCurrentContext(APIDefs->ImguiContext);
   ImGui::SetAllocatorFunctions(
       (void *(*)(size_t, void *))APIDefs->ImguiMalloc,
       (void (*)(void *, void *))APIDefs->ImguiFree); // on imgui 1.80+
+
+  LoadTextures();
 
   MumbleLink = (Mumble::Data *)APIDefs->GetResource("DL_MUMBLE_LINK");
   NexusLink = (NexusLinkData *)APIDefs->GetResource("DL_NEXUS_LINK");
@@ -240,8 +267,9 @@ void AddonLoad(AddonAPI *aApi) {
   Settings::Load(SettingsPath);
 
   if (!Settings::Settings["AllKeybindings"].is_null())
-    Settings::Settings["AllKeybindings"].get_to(KEYS);
+    Settings::Settings["AllKeybindings"].get_to(keys);
 
+  APIDefs->Log(ELogLevel_DEBUG, "finished loading all settings!");
   OnWindowResized(nullptr); // initialise self
 }
 
@@ -256,30 +284,50 @@ void AddonUnload() {
   MumbleLink = nullptr;
   NexusLink = nullptr;
 
-  json settings_json = KEYS;
+  json settings_json = keys;
   Settings::Settings["AllKeybindings"] = settings_json;
   Settings::Save(SettingsPath);
 }
 
-void keyPressedText(int index) {
-  if (KEYS[index].pressed) {
+void keyPressedText(struct m_key_s key) {
+  if (key.pressed) {
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - KEYS[index].start_pressing);
-    ImGui::Text("%s pressed, %ld ms", KEYS[index].binding_name.c_str(),
+        std::chrono::steady_clock::now() - key.start_pressing);
+    ImGui::Text("%s pressed, %ld ms", key.binding_name.c_str(),
                 duration.count());
   } else {
-    ImGui::Text("%s not pressed, %ld ms", KEYS[index].binding_name.c_str(),
+    ImGui::Text("%s not pressed, %ld ms", key.binding_name.c_str(),
                 std::chrono::duration_cast<std::chrono::milliseconds>(
-                    KEYS[index].end_pressing - KEYS[index].start_pressing)
+                    key.end_pressing - key.start_pressing)
                     .count());
   }
 }
 
-ImVec2 pos = ImVec2(62, 212);
+ImVec2 pos;
+void displayKey(std::unordered_map<char, Texture *> textures, char key) {
+  if (textures[key] && textures[key]->Resource) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::SetCursorPos(pos);
+    if (ImGui::ImageButton(textures[key]->Resource, ImVec2(48, 48))) {
+
+      // pos = ImGui::GetCursorPos();
+      // ImGui::SetCursorPos(ImGui::GetMousePos());
+    }
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar();
+    pos = ImVec2(pos.x + 50, pos.y);
+  } else {
+    keyPressedText(keys[key]);
+  }
+}
+
+// ImVec2 pos = ImVec2(62, 212);
 
 void AddonRender() {
   if (Settings::IsWidgetEnabled) {
-    // ImVec2 initialPos = ImGui::GetCursorPos();
+    pos = ImGui::GetCursorPos();
     // ImGui::ShowUserGuide();
     // ImGui::ShowDemoWindow();
     // ImGui::ShowStyleEditor();
@@ -289,42 +337,17 @@ void AddonRender() {
     ImGui::PushFont(NexusLink->Font);
     ImGui::PushItemWidth(1200.f);
     if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0,
+                     // ImGuiWindowFlags_NoBackground |
+                     // ImGuiWindowFlags_NoDecoration |
                      ImGuiWindowFlags_NoTitleBar |
                          ImGuiWindowFlags_NoFocusOnAppearing |
                          ImGuiWindowFlags_NoBringToFrontOnFocus |
                          ImGuiWindowFlags_NoScrollbar)) {
-
-      if (grid_texture && grid_texture->Resource) {
-        // ImGui::SetCursorPos(initialPos);
-        ImGui::Image(grid_texture->Resource, ImVec2(720, 320));
-      } else {
-        APIDefs->LoadTextureFromResource("TEX_GRID", IDB_TEX2, hSelf,
-                                         ReceiveTexture);
-      }
-      for (int i = 0; i < KEYS.size(); ++i) {
-        char code = KEYS[i].code;
-        if (KEYS[i].pressed) {
-          if (textures_pressed[code] && textures_pressed[code]->Resource) {
-            // ImVec2 pos(initialPos.x + 62, initialPos.y + 212);
-            ImGui::SetCursorPos(pos);
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                                  ImVec4(0.f, 0.f, 0.f, 0.f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                                  ImVec4(0.f, 0.f, 0.f, 0.f));
-            if (ImGui::ImageButton(textures_pressed[code]->Resource,
-                                   ImVec2(48, 48))) {
-              pos = ImGui::GetCursorPos();
-              // ImGui::SetCursorPos(ImGui::GetMousePos());
-            }
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-          } else {
-            keyPressedText(i);
-            APIDefs->LoadTextureFromResource("TEX_Z_PRESSED", IDB_TEX1, hSelf,
-                                             ReceiveTexture);
-          }
-        }
+      for (auto &&key : keys) {
+        if (key.second.pressed)
+          displayKey(textures_pressed, key.first);
+        else
+          displayKey(textures_not_pressed, key.first);
       }
       ImGui::Text("Cursor pos: %d %d", ImGui::GetCursorPos().x,
                   ImGui::GetCursorPos().y);
@@ -338,7 +361,7 @@ void AddonRender() {
   }
 }
 
-void deleteKey(int index) { KEYS.erase(KEYS.begin() + index); }
+void deleteKey(char code) { keys.erase(code); }
 
 void AddonOptions() {
   ImGui::Text("Keyboard Overlay");
@@ -347,18 +370,18 @@ void AddonOptions() {
     Settings::Settings[IS_KEYBOARD_OVERLAY_VISIBLE] = Settings::IsWidgetEnabled;
     Settings::Save(SettingsPath);
   }
-  for (int i = 0; i < KEYS.size(); ++i) {
-    ImGui::PushID(i);
-    ImGui::Text("%s Key", KEYS[i].binding_name.c_str());
+  for (auto &&key : keys) {
+    ImGui::PushID(key.first);
+    ImGui::Text("%s Key", key.second.binding_name.c_str());
     ImGui::SameLine();
-    if (keybindIndexToChange == i) {
+    if (keybindingToChange == key.first) {
       ImGui::Button("Press key to bind");
-    } else if (ImGui::Button(KEYS[i].key_name.c_str())) {
-      keybindIndexToChange = i;
+    } else if (ImGui::Button(key.second.key_name.c_str())) {
+      keybindingToChange = key.first;
     }
     ImGui::SameLine();
     if (ImGui::Button("Delete Key")) {
-      deleteKey(i);
+      deleteKey(key.first);
     }
     ImGui::PopID();
   }
@@ -384,6 +407,20 @@ void ReceiveTexture(const char *aIdentifier, Texture *aTexture) {
   } else if (str == "TEX_GRID") {
     grid_texture = aTexture;
   } else if (str == "TEX_Z_PRESSED") {
-    textures_pressed['z'] = aTexture;
+    textures_pressed['Z'] = aTexture;
+  } else if (str == "TEX_Z_NOT_PRESSED") {
+    textures_not_pressed['Z'] = aTexture;
+  } else if (str == "TEX_Q_PRESSED") {
+    textures_pressed['Q'] = aTexture;
+  } else if (str == "TEX_Q_NOT_PRESSED") {
+    textures_not_pressed['Q'] = aTexture;
+  } else if (str == "TEX_S_PRESSED") {
+    textures_pressed['S'] = aTexture;
+  } else if (str == "TEX_S_NOT_PRESSED") {
+    textures_not_pressed['S'] = aTexture;
+  } else if (str == "TEX_D_PRESSED") {
+    textures_pressed['D'] = aTexture;
+  } else if (str == "TEX_D_NOT_PRESSED") {
+    textures_not_pressed['D'] = aTexture;
   }
 }
