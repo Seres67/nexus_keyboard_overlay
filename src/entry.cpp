@@ -12,8 +12,6 @@
 #include "Settings.h"
 #include "Shared.h"
 
-#include "resource.h"
-
 #include "imgui/imgui.h"
 // #include "imgui/imgui_extensions.h"
 #include "nexus/Nexus.h"
@@ -35,18 +33,11 @@ AddonDefinition AddonDef{};
 std::filesystem::path AddonPath;
 std::filesystem::path SettingsPath;
 
-Texture *hrTex = nullptr;
-
-float padding = 5.0f;
-
-Texture *grid_texture;
-
 char keybindingToChange = -1;
 char newKeybindingName[20];
 bool addingKeybinding = false;
 
 const char *WINDOW_RESIZED = "EV_WINDOW_RESIZED";
-const char *HR_TEX = "TEX_SEPARATOR_DETAIL";
 
 struct m_key_s {
   std::string binding_name;
@@ -148,14 +139,6 @@ void setKeybinding(WPARAM wParam) {
   else {
     keys[keybindingToChange].key_name = c;
   }
-  char keybinding_setting[30];
-  sprintf(keybinding_setting, "%sKeybinding",
-          keys[keybindingToChange].binding_name.c_str());
-  APIDefs->Log(ELogLevel_INFO, keybinding_setting);
-  Settings::Settings[keybinding_setting] = keys[keybindingToChange].key_name;
-  char log[80];
-  sprintf(log, "changing to '%c'", keys[keybindingToChange].code);
-  APIDefs->Log(ELogLevel_INFO, log);
   keybindingToChange = -1;
 }
 
@@ -315,6 +298,8 @@ void displayKey(std::unordered_map<char, Texture *> textures, char key) {
       // pos = ImGui::GetCursorPos();
       // ImGui::SetCursorPos(ImGui::GetMousePos());
     }
+    ImGui::SetCursorPos(pos);
+    ImGui::Text(keys[key].binding_name.c_str());
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
     pos = ImVec2(pos.x + 50, pos.y);
@@ -349,12 +334,6 @@ void AddonRender() {
         else
           displayKey(textures_not_pressed, key.first);
       }
-      ImGui::Text("Cursor pos: %d %d", ImGui::GetCursorPos().x,
-                  ImGui::GetCursorPos().y);
-      ImGui::Text("Cursor screen pos: %d %d", ImGui::GetCursorScreenPos().x,
-                  ImGui::GetCursorScreenPos().y);
-      ImGui::Text("Mouse pos: %d %d", ImGui::GetMousePos().x,
-                  ImGui::GetMousePos().y);
     }
     ImGui::PopFont();
     ImGui::End();
@@ -402,11 +381,7 @@ void OnWindowResized(void *aEventArgs) { /* event args are nullptr, ignore */
 void ReceiveTexture(const char *aIdentifier, Texture *aTexture) {
   std::string str = aIdentifier;
 
-  if (str == HR_TEX) {
-    hrTex = aTexture;
-  } else if (str == "TEX_GRID") {
-    grid_texture = aTexture;
-  } else if (str == "TEX_Z_PRESSED") {
+  if (str == "TEX_Z_PRESSED") {
     textures_pressed['Z'] = aTexture;
   } else if (str == "TEX_Z_NOT_PRESSED") {
     textures_not_pressed['Z'] = aTexture;
