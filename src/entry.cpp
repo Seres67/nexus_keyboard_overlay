@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <windowsx.h>
 
 #include "Settings.h"
 #include "Shared.h"
@@ -37,6 +38,10 @@ char keybindingToChange = -1;
 char newKeybindingName[20];
 bool addingKeybinding = false;
 
+ImVec2 windowPos;
+char draggingButton = -1;
+ImVec2 dragPos;
+
 const char *WINDOW_RESIZED = "EV_WINDOW_RESIZED";
 
 struct m_key_s {
@@ -44,9 +49,9 @@ struct m_key_s {
   std::string key_name;
   char code;
   bool pressed;
-  ImVec2 pos_delta;
-  std::weak_ptr<Texture> not_pressed_tex;
-  std::weak_ptr<Texture> pressed_tex;
+  ImVec2 pos;
+  // std::weak_ptr<Texture> not_pressed_tex;
+  // std::weak_ptr<Texture> pressed_tex;
   std::chrono::time_point<std::chrono::steady_clock> start_pressing;
   std::chrono::time_point<std::chrono::steady_clock> end_pressing;
 };
@@ -59,16 +64,16 @@ void to_json(json &j, const struct m_key_s &p) {
   j = json{{"name", p.binding_name},
            {"key_name", p.key_name},
            {"key_code", p.code},
-           {"pos_x", p.pos_delta.x},
-           {"pos_y", p.pos_delta.y}};
+           {"pos_x", p.pos.x},
+           {"pos_y", p.pos.y}};
 }
 
 void from_json(const json &j, struct m_key_s &p) {
   j.at("name").get_to(p.binding_name);
   j.at("key_name").get_to(p.key_name);
   j.at("key_code").get_to(p.code);
-  j.at("pos_x").get_to(p.pos_delta.x);
-  j.at("pos_y").get_to(p.pos_delta.y);
+  j.at("pos_x").get_to(p.pos.x);
+  j.at("pos_y").get_to(p.pos.y);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
@@ -202,7 +207,15 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     // else if (uMsg == WM_XBUTTONDOWN)
     //   setMouseKeybinding(i, wParam);
   }
-
+  if (draggingButton != -1) {
+    if (uMsg == WM_MOUSEMOVE) {
+      int x = GET_X_LPARAM(lParam);
+      int y = GET_Y_LPARAM(lParam);
+      keys[draggingButton].pos = ImVec2(x - windowPos.x, y - windowPos.y);
+    } else if (uMsg == WM_LBUTTONUP) {
+      draggingButton = -1;
+    }
+  }
   if (uMsg == WM_XBUTTONDOWN) {
     char log[80];
     sprintf(log, "keystate: %zu, button %zu", GET_KEYSTATE_WPARAM(wParam),
@@ -287,28 +300,25 @@ void keyPressedText(struct m_key_s key) {
 }
 
 ImVec2 pos;
-void displayKey(std::unordered_map<char, Texture *> textures, char key) {
-  if (textures[key] && textures[key]->Resource) {
+void displayKey(std::unordered_map<char, Texture *> textures,
+                std::pair<char, struct m_key_s> key) {
+  if (textures[key.first] && textures[key.first]->Resource) {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
-    ImGui::SetCursorPos(pos);
-    if (ImGui::ImageButton(textures[key]->Resource, ImVec2(48, 48))) {
-
-      // pos = ImGui::GetCursorPos();
-      // ImGui::SetCursorPos(ImGui::GetMousePos());
+    ImGui::SetCursorPos(key.second.pos);
+    ImGui::ImageButton(textures[key.first]->Resource, ImVec2(48, 48));
+    if (ImGui::IsItemActive()) {
+      draggingButton = key.first;
+      windowPos = ImGui::GetWindowPos();
     }
-    ImGui::SetCursorPos(pos);
-    ImGui::Text(keys[key].binding_name.c_str());
+    ImGui::Text(keys[key.first].binding_name.c_str());
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
-    pos = ImVec2(pos.x + 50, pos.y);
   } else {
-    keyPressedText(keys[key]);
+    keyPressedText(keys[key.first]);
   }
 }
-
-// ImVec2 pos = ImVec2(62, 212);
 
 void AddonRender() {
   if (Settings::IsWidgetEnabled) {
@@ -330,9 +340,9 @@ void AddonRender() {
                          ImGuiWindowFlags_NoScrollbar)) {
       for (auto &&key : keys) {
         if (key.second.pressed)
-          displayKey(textures_pressed, key.first);
+          displayKey(textures_pressed, key);
         else
-          displayKey(textures_not_pressed, key.first);
+          displayKey(textures_not_pressed, key);
       }
     }
     ImGui::PopFont();
