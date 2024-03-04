@@ -7,6 +7,7 @@
 #include <string>
 
 const char *IS_KEYBOARD_OVERLAY_VISIBLE = "IsKeyboardOverlayVisible";
+const char *SHOW_KEY_LABELS = "ShowKeyLabels";
 
 namespace Settings {
 std::mutex Mutex;
@@ -34,6 +35,10 @@ void Load(std::filesystem::path aPath) {
   if (!Settings[IS_KEYBOARD_OVERLAY_VISIBLE].is_null()) {
     Settings[IS_KEYBOARD_OVERLAY_VISIBLE].get_to(IsWidgetEnabled);
   }
+
+  if (!Settings[SHOW_KEY_LABELS].is_null()) {
+    Settings[SHOW_KEY_LABELS].get_to(ShowKeyLabels);
+  }
 }
 
 void Save(std::filesystem::path aPath) {
@@ -51,6 +56,8 @@ void Save(std::filesystem::path aPath) {
 bool IsWidgetEnabled = true;
 float WidgetOffsetV = 0.0f;
 float WidgetWidth = 600.0f;
+
+bool ShowKeyLabels = true;
 
 /* World/Agent */
 bool IsAgentEnabled = true;

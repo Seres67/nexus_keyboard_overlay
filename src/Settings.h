@@ -7,6 +7,7 @@
 using json = nlohmann::json;
 
 extern const char *IS_KEYBOARD_OVERLAY_VISIBLE;
+extern const char *SHOW_KEY_LABELS;
 
 namespace Settings {
 extern std::mutex Mutex;
@@ -23,6 +24,8 @@ void Save(std::filesystem::path aPath);
 extern bool IsWidgetEnabled;
 extern float WidgetOffsetV;
 extern float WidgetWidth;
+
+extern bool ShowKeyLabels;
 
 /* World/Agent */
 extern bool IsAgentEnabled;

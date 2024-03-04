@@ -34,8 +34,10 @@ AddonDefinition AddonDef{};
 std::filesystem::path AddonPath;
 std::filesystem::path SettingsPath;
 
+ImVec2 image_size = ImVec2(72, 72);
+
 char keybindingToChange = -1;
-char newKeybindingName[20];
+char newKeybindingName[10];
 bool addingKeybinding = false;
 
 ImVec2 windowPos;
@@ -307,12 +309,22 @@ void displayKey(std::unordered_map<char, Texture *> textures,
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
     ImGui::SetCursorPos(key.second.pos);
-    ImGui::ImageButton(textures[key.first]->Resource, ImVec2(48, 48));
+    ImGui::ImageButton(textures[key.first]->Resource, image_size);
     if (ImGui::IsItemActive()) {
       draggingButton = key.first;
       windowPos = ImGui::GetWindowPos();
     }
-    ImGui::Text(keys[key.first].binding_name.c_str());
+    if (Settings::ShowKeyLabels) {
+      ImVec2 timerPos = key.second.pos;
+      ImVec2 labelPos = key.second.pos;
+      timerPos.y += 55;
+      labelPos.y -= 25;
+      labelPos.x +=
+          ((image_size.x - (7 * keys[key.first].binding_name.size())) / 2);
+      ImGui::SetCursorPos(labelPos);
+      ImGui::Text(keys[key.first].binding_name.c_str());
+      ImGui::SetCursorPos(labelPos);
+    }
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
   } else {
@@ -330,7 +342,7 @@ void AddonRender() {
     // ImGui::ShowMetricsWindow();
     /* use Menomonia */
     ImGui::PushFont(NexusLink->Font);
-    ImGui::PushItemWidth(1200.f);
+    // ImGui::PushItemWidth(1200.f);
     if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0,
                      // ImGuiWindowFlags_NoBackground |
                      // ImGuiWindowFlags_NoDecoration |
@@ -338,6 +350,7 @@ void AddonRender() {
                          ImGuiWindowFlags_NoFocusOnAppearing |
                          ImGuiWindowFlags_NoBringToFrontOnFocus |
                          ImGuiWindowFlags_NoScrollbar)) {
+      ImGui::SetWindowFontScale(0.9f);
       for (auto &&key : keys) {
         if (key.second.pressed)
           displayKey(textures_pressed, key);
@@ -359,6 +372,10 @@ void AddonOptions() {
     Settings::Settings[IS_KEYBOARD_OVERLAY_VISIBLE] = Settings::IsWidgetEnabled;
     Settings::Save(SettingsPath);
   }
+  if (ImGui::Checkbox("Show Key Labels##KeyLabels", &Settings::ShowKeyLabels)) {
+    Settings::Settings[SHOW_KEY_LABELS] = Settings::ShowKeyLabels;
+    Settings::Save(SettingsPath);
+  }
   for (auto &&key : keys) {
     ImGui::PushID(key.first);
     ImGui::Text("%s Key", key.second.binding_name.c_str());
@@ -376,7 +393,7 @@ void AddonOptions() {
   }
   ImGui::Text("New Key Name: ");
   ImGui::SameLine();
-  ImGui::InputText("##newKeyName", newKeybindingName, 20);
+  ImGui::InputText("##newKeyName", newKeybindingName, 10);
   ImGui::SameLine();
   if (addingKeybinding) {
     ImGui::Button("Press key to bind");
