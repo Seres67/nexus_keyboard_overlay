@@ -1,80 +1,80 @@
 #include "resource.h"
 #include "winres.h"
 
-//103 PNG "a_not_pressed.png"
-//104 PNG "a_pressed.png"
+//103 PNG "res/a_not_pressed.png"
+//104 PNG "res/a_pressed.png"
 
-//105 PNG "b_not_pressed.png"
-//106 PNG "b_pressed.png"
+//105 PNG "res/b_not_pressed.png"
+//106 PNG "res/b_pressed.png"
 
-//107 PNG "c_not_pressed.png"
-//108 PNG "c_pressed.png"
+//107 PNG "res/c_not_pressed.png"
+//108 PNG "res/c_pressed.png"
 
-109 PNG "d_not_pressed.png"
-110 PNG "d_pressed.png"
+109 PNG "res/d_not_pressed.png"
+110 PNG "res/d_pressed.png"
 
-//111 PNG "e_not_pressed.png"
-//112 PNG "e_pressed.png"
+//111 PNG "res/e_not_pressed.png"
+//112 PNG "res/e_pressed.png"
 
-//113 PNG "f_not_pressed.png"
-//114 PNG "f_pressed.png"
+//113 PNG "res/f_not_pressed.png"
+//114 PNG "res/f_pressed.png"
 
-//115 PNG "g_not_pressed.png"
-//116 PNG "g_pressed.png"
+//115 PNG "res/g_not_pressed.png"
+//116 PNG "res/g_pressed.png"
 
-//117 PNG "h_not_pressed.png"
-//118 PNG "h_pressed.png"
+//117 PNG "res/h_not_pressed.png"
+//118 PNG "res/h_pressed.png"
 
-//119 PNG "i_not_pressed.png"
-//120 PNG "i_pressed.png"
+//119 PNG "res/i_not_pressed.png"
+//120 PNG "res/i_pressed.png"
 
-//121 PNG "j_not_pressed.png"
-//122 PNG "j_pressed.png"
+//121 PNG "res/j_not_pressed.png"
+//122 PNG "res/j_pressed.png"
 
-//123 PNG "k_not_pressed.png"
-//124 PNG "k_pressed.png"
+//123 PNG "res/k_not_pressed.png"
+//124 PNG "res/k_pressed.png"
 
-//125 PNG "l_not_pressed.png"
-//126 PNG "l_pressed.png"
+//125 PNG "res/l_not_pressed.png"
+//126 PNG "res/l_pressed.png"
 
-//127 PNG "m_not_pressed.png"
-//128 PNG "m_pressed.png"
+//127 PNG "res/m_not_pressed.png"
+//128 PNG "res/m_pressed.png"
 
-//129 PNG "n_not_pressed.png"
-//130 PNG "n_pressed.png"
+//129 PNG "res/n_not_pressed.png"
+//130 PNG "res/n_pressed.png"
 
-//131 PNG "o_not_pressed.png"
-//132 PNG "o_pressed.png"
+//131 PNG "res/o_not_pressed.png"
+//132 PNG "res/o_pressed.png"
 
-//133 PNG "p_not_pressed.png"
-//134 PNG "p_pressed.png"
+//133 PNG "res/p_not_pressed.png"
+//134 PNG "res/p_pressed.png"
 
-135 PNG "q_not_pressed.png"
-136 PNG "q_pressed.png"
+135 PNG "res/q_not_pressed.png"
+136 PNG "res/q_pressed.png"
 
-//137 PNG "r_not_pressed.png"
-//138 PNG "r_pressed.png"
+//137 PNG "res/r_not_pressed.png"
+//138 PNG "res/r_pressed.png"
 
-139 PNG "s_not_pressed.png"
-140 PNG "s_pressed.png"
+139 PNG "res/s_not_pressed.png"
+140 PNG "res/s_pressed.png"
 
-//141 PNG "t_not_pressed.png"
-//142 PNG "t_pressed.png"
+//141 PNG "res/t_not_pressed.png"
+//142 PNG "res/t_pressed.png"
 
-//143 PNG "u_not_pressed.png"
-//144 PNG "u_pressed.png"
+//143 PNG "res/u_not_pressed.png"
+//144 PNG "res/u_pressed.png"
 
-//145 PNG "v_not_pressed.png"
-//146 PNG "v_pressed.png"
+//145 PNG "res/v_not_pressed.png"
+//146 PNG "res/v_pressed.png"
 
-//147 PNG "w_not_pressed.png"
-//148 PNG "w_pressed.png"
+//147 PNG "res/w_not_pressed.png"
+//148 PNG "res/w_pressed.png"
 
-//149 PNG "x_not_pressed.png"
-//150 PNG "x_pressed.png"
+//149 PNG "res/x_not_pressed.png"
+//150 PNG "res/x_pressed.png"
 
-//151 PNG "y_not_pressed.png"
-//152 PNG "y_pressed.png"
+//151 PNG "res/y_not_pressed.png"
+//152 PNG "res/y_pressed.png"
 
-153 PNG "z_not_pressed.png"
-154 PNG "z_pressed.png"
+153 PNG "res/z_not_pressed.png"
+154 PNG "res/z_pressed.png"
