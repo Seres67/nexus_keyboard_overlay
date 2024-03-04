@@ -318,12 +318,23 @@ void displayKey(std::unordered_map<char, Texture *> textures,
       ImVec2 timerPos = key.second.pos;
       ImVec2 labelPos = key.second.pos;
       timerPos.y += 55;
-      labelPos.y -= 25;
-      labelPos.x +=
-          ((image_size.x - (7 * keys[key.first].binding_name.size())) / 2);
+      timerPos.x += (image_size.x - (7 * (3 + 4))) / 2;
+      labelPos.x += (image_size.x - (7 * key.second.binding_name.size())) / 2;
       ImGui::SetCursorPos(labelPos);
-      ImGui::Text(keys[key.first].binding_name.c_str());
-      ImGui::SetCursorPos(labelPos);
+      ImGui::Text(key.second.binding_name.c_str());
+      ImGui::SetCursorPos(timerPos);
+      if (key.second.pressed) {
+        auto duration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - key.second.start_pressing)
+                .count();
+        ImGui::Text("%ld ms", duration);
+      } else {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            key.second.end_pressing - key.second.start_pressing)
+                            .count();
+        ImGui::Text("%ld ms", duration);
+      }
     }
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
