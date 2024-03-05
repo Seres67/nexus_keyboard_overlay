@@ -1,10 +1,9 @@
-#include "Settings.h"
+#include <Settings.h>
 
 #include "Shared.h"
 
 #include <filesystem>
 #include <fstream>
-#include <string>
 
 const char *IS_KEYBOARD_OVERLAY_VISIBLE = "IsKeyboardOverlayVisible";
 const char *SHOW_KEY_LABELS = "ShowKeyLabels";

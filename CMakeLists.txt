@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SYSTEM_NAME Windows)
@@ -23,20 +24,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -O2")
 
 project(nexus_keyboard_overlay)
 
-include_directories(src)
+include_directories(include)
 
 # load imgui as a cmake project
 add_subdirectory(src/imgui)
 
-# load mumble as a cmake project
-add_subdirectory(src/mumble)
-
-# load nexus as a cmake project
-add_subdirectory(src/nexus)
-
-# load nlohmann/json as a cmake project
-add_subdirectory(src/nlohmann)
-
-add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Settings.h src/Shared.h)
+add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Key.cpp src/utils.cpp)
 target_sources(nexus_keyboard_overlay PRIVATE src/overlay.rc)
-target_link_libraries(nexus_keyboard_overlay imgui json nexus mumble)
+target_link_libraries(nexus_keyboard_overlay imgui)

@@ -5,7 +5,7 @@
 #include <mutex>
 #include <windows.h>
 
-#include "imgui/imgui.h"
+#include <imgui/imgui.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
