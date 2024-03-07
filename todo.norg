@@ -4,15 +4,12 @@ description: Todo list of this project
 authors: Seres67
 categories: 
 created: 2024-03-04T02:17:50+0100
-updated: 2024-03-04T02:23:03+0100
+updated: 2024-03-05T18:40:53+0100
 version: 1.1.1
 @end
 
 * Todo
-  - {** Movable keys}
-- Resources in a subfolder
 - Cleanup code (i.e. SOLID, DRY, KISS)
-
-** Movable keys
-   Get/SetCursorPos
-   WndProc GetMousePos
+- Dynamic scale
+- Maybe only show the action and not the key itself?
+- Why is Button5 == &?
