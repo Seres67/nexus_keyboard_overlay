@@ -5,7 +5,7 @@ A simple keyboard overlay to show keypresses, specifically made for JP speedrunn
 [[JP] Community Discord](https://gw2jp.net/discord)
 
 ## Features
-- Handles normal keys, NUMPAD and mouse keys. ! shifted keys are not handled (though shift can be added as a seperate key) !
+- Handles normal keys, NUMPAD and mouse keys. ⚠️ shifted keys are not handled (though shift can be added as a seperate key) ⚠️
 - Add and place keys where you want!
 - Your layout is saved and loaded on launch
 - Toggle-able transparency (opacity is set to 80% by default so you can almost see what's going on under it)
