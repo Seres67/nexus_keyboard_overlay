@@ -21,9 +21,6 @@
 
 using json = nlohmann::json;
 
-void OnWindowResized(void *aEventArgs);
-void ReceiveTexture(const char *aIdentifier, Texture *aTexture);
-
 void AddonLoad(AddonAPI *aApi);
 void AddonUnload();
 void AddonRender();
@@ -36,19 +33,15 @@ AddonDefinition AddonDef{};
 std::filesystem::path AddonPath;
 std::filesystem::path SettingsPath;
 
-UINT keybindingToChange = -1;
+unsigned int keybindingToChange = UINT_MAX;
 char newKeybindingName[10];
 bool addingKeybinding = false;
 
 ImVec2 windowPos;
-UINT draggingButton = -1;
+unsigned int draggingButton = UINT_MAX;
 ImVec2 dragPos;
 
-const char *WINDOW_RESIZED = "EV_WINDOW_RESIZED";
-
-std::map<UINT, Key> keys;
-std::unordered_map<std::string, Texture *> textures_not_pressed;
-std::unordered_map<std::string, Texture *> textures_pressed;
+std::map<unsigned int, Key> keys;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
                       LPVOID lpReserved)
@@ -89,87 +82,66 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
 
 void KeyDown(WPARAM i_key, LPARAM lParam)
 {
-    UINT c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
-    char log[80];
-    if (lParam >> 24 == 1) {
-        Log::debug("numpad key");
-        // NUMPAD, arrow keys, right alt, right ctrl, ins, del, home, end, page
-        // up, page down, num lock, (ctrl + pause), print screen, divide
-        // (numpad), enter (numpad)
-    }
-
+    unsigned int c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
+    // NUMPAD, arrow keys, right alt, right ctrl, ins, del, home, end, page
+    // up, page down, num lock, (ctrl + pause), print screen, divide
+    // (numpad), enter (numpad)
+    if (lParam >> 24 == 1)
+        Log::debug("special key");
     for (auto &&key : keys) {
-        sprintf(log, "received %d, checking against %d", c,
-                key.second.getKeyCode());
-        Log::debug(log);
-
-        if (!key.second.isKeyPressed() && c == key.second.getKeyCode()) {
+        if (!key.second.isKeyPressed() && c == key.first)
             key.second.keyDown();
-        }
     }
 }
 
 void KeyUp(WPARAM i_key)
 {
-    UINT c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
-    for (auto &&key : keys) {
-        if (key.second.isKeyPressed() && c == key.second.getKeyCode()) {
+    unsigned int c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
+    for (auto &&key : keys)
+        if (key.second.isKeyPressed() && c == key.first)
             key.second.keyUp();
-        }
-    }
 }
 
 void MouseButtonDown(WPARAM i_key)
 {
-    UINT c = GET_XBUTTON_WPARAM(i_key);
+    unsigned int c = GET_XBUTTON_WPARAM(i_key);
     c <<= 8;
-    for (auto &&key : keys) {
-        if (!key.second.isKeyPressed() && c == key.second.getKeyCode()) {
+    for (auto &&key : keys)
+        if (!key.second.isKeyPressed() && c == key.first)
             key.second.keyDown();
-        }
-    }
 }
 
 void MouseButtonUp(WPARAM i_key)
 {
-    UINT c = GET_XBUTTON_WPARAM(i_key);
+    unsigned int c = GET_XBUTTON_WPARAM(i_key);
     c <<= 8;
-    for (auto &&key : keys) {
-        if (key.second.isKeyPressed() && c == key.second.getKeyCode()) {
+    for (auto &&key : keys)
+        if (key.second.isKeyPressed() && c == key.first)
             key.second.keyUp();
-        }
-    }
 }
 
 void setKeybinding(WPARAM key)
 {
-    UINT key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
+    unsigned int key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
     char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
-    // if (wParam >= 'A' && wParam <= 'Z')
-    //   keys[c].setKeyCode(c + 32);
-    // else
     keys[key_code].setKeyCode(key_code);
     if (key == VK_SPACE)
         keys[key_code].setKeyName("Space");
-    else {
+    else
         keys[key_code].setKeyName({c});
-    }
     keys[key_code].setPos(keys[keybindingToChange].getPos());
     keys[key_code].setDisplayName(keys[keybindingToChange].getDisplayName());
     keys[key_code].reset();
     keys.erase(keybindingToChange);
-    keybindingToChange = -1;
+    keybindingToChange = UINT_MAX;
 }
 
 void addKeybinding(WPARAM key, LPARAM lParam)
 {
-    UINT key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
+    unsigned int key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
     char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
 
     addingKeybinding = false;
-    // if (key >= 'A' && key <= 'Z')
-    //   keys[c].setKeyCode(c + 32);
-    // else
     keys[key_code].setKeyCode(key_code);
     if (key == VK_SPACE)
         keys[key_code].setKeyName("Space");
@@ -177,12 +149,13 @@ void addKeybinding(WPARAM key, LPARAM lParam)
         keys[key_code].setKeyName({c});
     }
     keys[key_code].setDisplayName(newKeybindingName);
+    keys[key_code].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
 
 void setMouseKeybinding(WPARAM wParam)
 {
-    UINT c = GET_XBUTTON_WPARAM(wParam);
+    unsigned int c = GET_XBUTTON_WPARAM(wParam);
     c <<= 8;
 
     keys[c].setKeyCode(c);
@@ -191,28 +164,29 @@ void setMouseKeybinding(WPARAM wParam)
     keys[c].setDisplayName(keys[keybindingToChange].getDisplayName());
     keys[c].reset();
     keys.erase(keybindingToChange);
-    keybindingToChange = -1;
+    keybindingToChange = UINT_MAX;
 }
 
 void addMouseButton(WPARAM wParam)
 {
-    UINT button_code = GET_XBUTTON_WPARAM(wParam);
+    unsigned int button_code = GET_XBUTTON_WPARAM(wParam);
     button_code <<= 8;
     addingKeybinding = false;
     keys[button_code].setKeyCode(button_code);
     keys[button_code].setKeyName(button_code == 256 ? "Button4" : "Button5");
     keys[button_code].setDisplayName(newKeybindingName);
+    keys[button_code].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
 
-UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
 {
     if (addingKeybinding) {
         if (uMsg == WM_KEYDOWN)
             addKeybinding(wParam, lParam);
         else if (uMsg == WM_XBUTTONDOWN)
             addMouseButton(wParam);
-    } else if (keybindingToChange == -1) {
+    } else if (keybindingToChange == UINT_MAX) {
         switch (uMsg) {
         case WM_KEYDOWN:
             KeyDown(wParam, lParam);
@@ -236,31 +210,16 @@ UINT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK)
             setMouseKeybinding(wParam);
     }
-    if (draggingButton != -1) {
+    if (draggingButton != UINT_MAX) {
         if (uMsg == WM_MOUSEMOVE) {
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
             keys[draggingButton].setPos({x - windowPos.x, y - windowPos.y});
         } else if (uMsg == WM_LBUTTONUP) {
-            draggingButton = -1;
+            draggingButton = UINT_MAX;
         }
     }
     return uMsg;
-}
-
-void LoadTextures()
-{
-    char tex_name[19];
-    char tex_pressed_name[15];
-    int id = 103;
-    for (char c = 'A'; c <= 'Z'; ++c, id += 2) {
-        sprintf(tex_name, "TEX_%c_NOT_PRESSED", c);
-        sprintf(tex_pressed_name, "TEX_%c_PRESSED", c);
-        APIDefs->LoadTextureFromResource(tex_name, id, hSelf, ReceiveTexture);
-        APIDefs->LoadTextureFromResource(tex_pressed_name, id + 1, hSelf,
-                                         ReceiveTexture);
-    }
-    APIDefs->Log(ELogLevel_DEBUG, "finished loading all textures!");
 }
 
 void AddonLoad(AddonAPI *aApi)
@@ -271,13 +230,10 @@ void AddonLoad(AddonAPI *aApi)
         (void *(*)(size_t, void *))APIDefs->ImguiMalloc,
         (void (*)(void *, void *))APIDefs->ImguiFree); // on imgui 1.80+
 
-    LoadTextures();
-
     MumbleLink = (Mumble::Data *)APIDefs->GetResource("DL_MUMBLE_LINK");
     NexusLink = (NexusLinkData *)APIDefs->GetResource("DL_NEXUS_LINK");
 
     APIDefs->RegisterWndProc(WndProc);
-    APIDefs->SubscribeEvent(WINDOW_RESIZED, OnWindowResized);
 
     APIDefs->RegisterRender(ERenderType_Render, AddonRender);
     APIDefs->RegisterRender(ERenderType_OptionsRender, AddonOptions);
@@ -290,16 +246,13 @@ void AddonLoad(AddonAPI *aApi)
     if (!Settings::Settings["AllKeybindings"].is_null())
         Settings::Settings["AllKeybindings"].get_to(keys);
 
-    APIDefs->Log(ELogLevel_DEBUG, "finished loading all settings!");
-    OnWindowResized(nullptr); // initialise self
+    Log::info("finished loading all settings!");
 }
 
 void AddonUnload()
 {
     APIDefs->UnregisterRender(AddonOptions);
     APIDefs->UnregisterRender(AddonRender);
-
-    APIDefs->UnsubscribeEvent(WINDOW_RESIZED, OnWindowResized);
 
     APIDefs->UnregisterWndProc(WndProc);
 
@@ -311,96 +264,38 @@ void AddonUnload()
     Settings::Save(SettingsPath);
 }
 
-// void keyPressedText(Key &key) {
-//   if (key.isKeyPressed()) {
-//
-//     ImGui::Text("%s pressed, %lld ms", key.getDisplayName().c_str(),
-//                 key.getPressedDuration());
-//   } else {
-//     ImGui::Text("%s not pressed, %lld ms", key.getDisplayName().c_str(),
-//                 key.getPressedDuration());
-//   }
-// }
-
-ImVec2 pos;
-// void displayKey(std::unordered_map<std::string, Texture *> textures,
-//                 std::pair<char, Key> key) {
-//   // TODO: this is wrong
-//   if (textures[key.second.getKeyName()] &&
-//       textures[key.second.getKeyName()]->Resource) {
-//     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-//     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f,
-//     0.f)); ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f,
-//     0.f)); ImGui::SetCursorPos(key.second.getPos());
-//     ImGui::ImageButton(textures[key.second.getKeyName()]->Resource,
-//     image_size); if (ImGui::IsItemActive()) {
-//       draggingButton = key.first;
-//       windowPos = ImGui::GetWindowPos();
-//     }
-//     if (Settings::ShowKeyLabels) {
-//       ImVec2 timerPos = key.second.getPos();
-//       ImVec2 labelPos = key.second.getPos();
-//       timerPos.y += 55;
-//       // 7 = ~pixel size of a char
-//       // 3 = " ms" char count
-//       // 4 = average number of other chars
-//       timerPos.x += (image_size.x - (7 * (3 + 4))) / 2;
-//       labelPos.x +=
-//           (image_size.x - (7 * key.second.getDisplayName().size())) / 2;
-//       ImGui::SetCursorPos(labelPos);
-//       ImGui::Text("%s", key.second.getDisplayName().c_str());
-//       ImGui::SetCursorPos(timerPos);
-//       if (key.second.isKeyPressed()) {
-//         ImGui::Text("%lld ms", key.second.getPressedDuration());
-//       } else {
-//         ImGui::Text("%lld ms", key.second.getPressedDuration());
-//       }
-//     }
-//     ImGui::PopStyleColor(2);
-//     ImGui::PopStyleVar();
-//   } else {
-//     keyPressedText(keys[key.first]);
-//   }
-// }
-
-void displayKey(std::unordered_map<std::string, Texture *> textures,
-                std::pair<char, Key> key)
+void displayKey(std::pair<unsigned int, Key> key)
 {
-    // TODO: this is wrong
-    // if (textures[key.second.getKeyName()] &&
-    //     textures[key.second.getKeyName()]->Resource) {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           ImVec4(0.15f, 0.15f, 0.15f, 0.8f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           ImVec4(0.15f, 0.15f, 0.15f, 0.8f));
     ImGui::SetCursorPos(key.second.getPos());
-    // ImGui::ImageButton(textures[key.second.getKeyName()]->Resource,
-    // image_size);
     if (key.second.isKeyPressed())
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.6f, 0.42f, 0.8f));
     else
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
-    ImGui::Button(key.second.getDisplayName().c_str(),
-                  {Settings::KeySize, Settings::KeySize});
+    if (key.second.getKeyName() != "Space") {
+        ImGui::Button(key.second.getDisplayName().c_str(),
+                      {Settings::KeySize, Settings::KeySize});
+    } else {
+        ImGui::Button(key.second.getDisplayName().c_str(),
+                      {Settings::KeySize * 2, Settings::KeySize});
+    }
     ImGui::PopStyleColor();
     if (ImGui::IsItemActive()) {
         draggingButton = key.first;
         windowPos = ImGui::GetWindowPos();
     }
-    if (Settings::ShowKeyLabels) {
+    if (Settings::ShowKeyTimers) {
         ImVec2 timerPos = key.second.getPos();
-        // ImVec2 labelPos = key.second.getPos();
         timerPos.y += 55;
         // 7 = ~pixel size of a char
         // 3 = " ms" char count
         // 4 = average number of other chars
         timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
-        // labelPos.x +=
-        // (image_size.x - (7 * key.second.getDisplayName().size())) / 2;
-        // ImGui::SetCursorPos(labelPos);
-        // ImGui::Text("%s", key.second.getDisplayName().c_str());
         ImGui::SetCursorPos(timerPos);
         if (key.second.isKeyPressed()) {
             ImGui::Text("%lld ms", key.second.getPressedDuration());
@@ -412,32 +307,33 @@ void displayKey(std::unordered_map<std::string, Texture *> textures,
     ImGui::PopStyleVar();
 }
 
+ImGuiWindowFlags windowFlags =
+    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing |
+    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
 void AddonRender()
 {
+    if (Settings::IsBackgroundTransparent &&
+        (windowFlags & ImGuiWindowFlags_NoBackground) == 0)
+        windowFlags |=
+            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration;
+    else if (!Settings::IsBackgroundTransparent &&
+             (windowFlags & ImGuiWindowFlags_NoBackground) != 0) {
+        windowFlags = windowFlags & ~ImGuiWindowFlags_NoBackground;
+        windowFlags = windowFlags & ~ImGuiWindowFlags_NoDecoration;
+    }
     if (Settings::IsWidgetEnabled) {
-        pos = ImGui::GetCursorPos();
         ImGui::PushFont(NexusLink->Font);
-        if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0,
-                         // ImGuiWindowFlags_NoBackground |
-                         // ImGuiWindowFlags_NoDecoration |
-                         ImGuiWindowFlags_NoTitleBar |
-                             ImGuiWindowFlags_NoFocusOnAppearing |
-                             ImGuiWindowFlags_NoBringToFrontOnFocus |
-                             ImGuiWindowFlags_NoScrollbar)) {
+        if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0, windowFlags)) {
             ImGui::SetWindowFontScale(Settings::WindowScale);
-            for (auto &&key : keys) {
-                if (key.second.isKeyPressed())
-                    displayKey(textures_pressed, key);
-                else
-                    displayKey(textures_not_pressed, key);
-            }
+            for (auto &&key : keys)
+                displayKey(key);
         }
         ImGui::PopFont();
         ImGui::End();
     }
 }
 
-void deleteKey(char code) { keys.erase(code); }
+void deleteKey(unsigned int code) { keys.erase(code); }
 
 void AddonOptions()
 {
@@ -448,9 +344,15 @@ void AddonOptions()
             Settings::IsWidgetEnabled;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::Checkbox("Show Key Labels##KeyLabels",
-                        &Settings::ShowKeyLabels)) {
-        Settings::Settings[SHOW_KEY_LABELS] = Settings::ShowKeyLabels;
+    if (ImGui::Checkbox("Transparent Background##background",
+                        &Settings::IsBackgroundTransparent)) {
+        Settings::Settings[IS_BACKGROUND_TRANSPARENT] =
+            Settings::IsBackgroundTransparent;
+        Settings::Save(SettingsPath);
+    }
+    if (ImGui::Checkbox("Show Key Timers##KeyTimers",
+                        &Settings::ShowKeyTimers)) {
+        Settings::Settings[SHOW_KEY_TIMERS] = Settings::ShowKeyTimers;
         Settings::Save(SettingsPath);
     }
     if (ImGui::SliderFloat("Window Scale##Scale", &Settings::WindowScale, 0.1,
@@ -475,7 +377,7 @@ void AddonOptions()
         if (ImGui::Button("Delete Key")) {
             deleteKey(key.first);
             if (keybindingToChange == key.first)
-                keybindingToChange = -1;
+                keybindingToChange = UINT_MAX;
         }
         ImGui::PopID();
     }
@@ -487,32 +389,5 @@ void AddonOptions()
         ImGui::Button("Press key to bind");
     } else if (ImGui::Button("Add Key")) {
         addingKeybinding = true;
-    }
-}
-
-void OnWindowResized(void *aEventArgs)
-{ /* event args are nullptr, ignore */
-}
-
-void ReceiveTexture(const char *aIdentifier, Texture *aTexture)
-{
-    std::string str = aIdentifier;
-
-    if (str == "TEX_Z_PRESSED") {
-        textures_pressed["Z"] = aTexture;
-    } else if (str == "TEX_Z_NOT_PRESSED") {
-        textures_not_pressed["Z"] = aTexture;
-    } else if (str == "TEX_Q_PRESSED") {
-        textures_pressed["Q"] = aTexture;
-    } else if (str == "TEX_Q_NOT_PRESSED") {
-        textures_not_pressed["Q"] = aTexture;
-    } else if (str == "TEX_S_PRESSED") {
-        textures_pressed["S"] = aTexture;
-    } else if (str == "TEX_S_NOT_PRESSED") {
-        textures_not_pressed["S"] = aTexture;
-    } else if (str == "TEX_D_PRESSED") {
-        textures_pressed["D"] = aTexture;
-    } else if (str == "TEX_D_NOT_PRESSED") {
-        textures_not_pressed["D"] = aTexture;
     }
 }

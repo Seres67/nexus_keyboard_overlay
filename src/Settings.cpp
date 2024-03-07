@@ -6,7 +6,8 @@
 #include <fstream>
 
 const char *IS_KEYBOARD_OVERLAY_VISIBLE = "IsKeyboardOverlayVisible";
-const char *SHOW_KEY_LABELS = "ShowKeyLabels";
+const char *IS_BACKGROUND_TRANSPARENT = "IsBackgroundTransparent";
+const char *SHOW_KEY_TIMERS = "ShowKeyTimers";
 const char *KEY_SIZE = "KeySize";
 const char *WINDOW_SCALE = "WINDOW_SCALE";
 
@@ -35,20 +36,16 @@ void Load(std::filesystem::path aPath)
         }
     }
     Settings::Mutex.unlock();
-
-    if (!Settings[IS_KEYBOARD_OVERLAY_VISIBLE].is_null()) {
+    if (!Settings[IS_KEYBOARD_OVERLAY_VISIBLE].is_null())
         Settings[IS_KEYBOARD_OVERLAY_VISIBLE].get_to(IsWidgetEnabled);
-    }
-
-    if (!Settings[SHOW_KEY_LABELS].is_null()) {
-        Settings[SHOW_KEY_LABELS].get_to(ShowKeyLabels);
-    }
-    if (!Settings[WINDOW_SCALE].is_null()) {
+    if (!Settings[IS_BACKGROUND_TRANSPARENT].is_null())
+        Settings[IS_BACKGROUND_TRANSPARENT].get_to(IsBackgroundTransparent);
+    if (!Settings[SHOW_KEY_TIMERS].is_null())
+        Settings[SHOW_KEY_TIMERS].get_to(ShowKeyTimers);
+    if (!Settings[WINDOW_SCALE].is_null())
         Settings[WINDOW_SCALE].get_to(WindowScale);
-    }
-    if (!Settings[KEY_SIZE].is_null()) {
+    if (!Settings[KEY_SIZE].is_null())
         Settings[KEY_SIZE].get_to(KeySize);
-    }
 }
 
 void Save(std::filesystem::path aPath)
@@ -68,7 +65,8 @@ bool IsWidgetEnabled = true;
 float WidgetOffsetV = 0.0f;
 float WidgetWidth = 600.0f;
 
-bool ShowKeyLabels = true;
+bool IsBackgroundTransparent = false;
+bool ShowKeyTimers = true;
 float WindowScale = 0.9f;
 float KeySize = 72;
 

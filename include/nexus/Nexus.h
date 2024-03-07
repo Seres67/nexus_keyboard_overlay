@@ -1,8 +1,8 @@
 #ifndef NEXUS_H
 #define NEXUS_H
 
-#include <Windows.h>
 #include <d3d11.h>
+#include <windows.h>
 
 #if __has_include("imgui/imgui.h")
 #include "imgui/imgui.h"
@@ -241,7 +241,7 @@ typedef struct AddonDefinition
     const char *Description; /* Short description */
     ADDON_LOAD Load;         /* Pointer to Load Function of the addon */
     ADDON_UNLOAD
-        Unload;        /* Pointer to Unload Function of the addon. Not required
+    Unload;            /* Pointer to Unload Function of the addon. Not required
                           if EAddonFlags::DisableHotloading is set. */
     EAddonFlags Flags; /* Information about the addon */
 

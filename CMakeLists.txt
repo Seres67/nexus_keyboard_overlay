@@ -30,5 +30,4 @@ include_directories(include)
 add_subdirectory(src/imgui)
 
 add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Key.cpp src/utils.cpp)
-target_sources(nexus_keyboard_overlay PRIVATE src/overlay.rc)
 target_link_libraries(nexus_keyboard_overlay imgui)

@@ -7,7 +7,8 @@
 using json = nlohmann::json;
 
 extern const char *IS_KEYBOARD_OVERLAY_VISIBLE;
-extern const char *SHOW_KEY_LABELS;
+extern const char *IS_BACKGROUND_TRANSPARENT;
+extern const char *SHOW_KEY_TIMERS;
 extern const char *WINDOW_SCALE;
 extern const char *KEY_SIZE;
 
@@ -28,7 +29,8 @@ extern bool IsWidgetEnabled;
 extern float WidgetOffsetV;
 extern float WidgetWidth;
 
-extern bool ShowKeyLabels;
+extern bool IsBackgroundTransparent;
+extern bool ShowKeyTimers;
 extern float WindowScale;
 extern float KeySize;
 

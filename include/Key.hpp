@@ -19,7 +19,8 @@ class Key
 
     Key() {}
 
-    Key(std::string binding_name, std::string key_name, UINT code, ImVec2 pos)
+    Key(std::string binding_name, std::string key_name, unsigned int code,
+        ImVec2 pos)
         : m_binding_name(binding_name), m_key_name(key_name), m_code(code),
           m_pos(pos)
     {
@@ -36,8 +37,8 @@ class Key
 
     const bool isKeyPressed() const { return m_pressed; }
 
-    const UINT getKeyCode() const { return m_code; }
-    void setKeyCode(UINT code) { m_code = code; }
+    const unsigned int getKeyCode() const { return m_code; }
+    void setKeyCode(unsigned int code) { m_code = code; }
 
     const std::string &getDisplayName() const { return m_binding_name; }
     void setDisplayName(const std::string &name) { m_binding_name = name; }
@@ -90,12 +91,12 @@ class Key
   private:
     std::string m_binding_name;
     std::string m_key_name;
-    UINT m_code;
-    bool m_pressed;
+    unsigned int m_code;
+    bool m_pressed = false;
     ImVec2 m_pos;
     ImVec2 m_display_size;
-    std::chrono::time_point<std::chrono::steady_clock> m_start_pressing;
-    std::chrono::time_point<std::chrono::steady_clock> m_end_pressing;
+    std::chrono::time_point<std::chrono::steady_clock> m_start_pressing = {};
+    std::chrono::time_point<std::chrono::steady_clock> m_end_pressing = {};
 };
 
 #endif // !NEXUS_KEYBOARD_OVERLAY_KEY_HPP
