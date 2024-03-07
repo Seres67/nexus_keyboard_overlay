@@ -66,7 +66,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.APIVersion = NEXUS_API_VERSION;
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
-    AddonDef.Version.Minor = 6;
+    AddonDef.Version.Minor = 7;
     AddonDef.Version.Build = 0;
     AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
@@ -374,7 +374,8 @@ void AddonOptions()
             keybindingToChange = key.first;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Delete Key")) {
+        iz dImGui::Button("Delete Key"))
+        {
             deleteKey(key.first);
             if (keybindingToChange == key.first)
                 keybindingToChange = UINT_MAX;
