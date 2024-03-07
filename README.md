@@ -4,6 +4,12 @@ A simple keyboard overlay to show keypresses, specifically made for JP speedrunn
 
 [[JP] Community Discord](https://gw2jp.net/discord)
 
+## Features
+- Handles normal keys, NUMPAD and mouse keys. ! shifted keys are not handled (though shift can be added as a seperate key) !
+- Add and place keys where you want!
+- Your layout is saved and loaded on launch
+- Toggle-able transparency (opacity is set to 80% by default so you can almost see what's going on under it)
+
 ## Usage
 
 Download & install [Nexus](https://raidcore.gg/Nexus) and run Guild Wars 2 once to setup Nexus.  
