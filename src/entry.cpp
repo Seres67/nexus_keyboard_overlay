@@ -374,8 +374,7 @@ void AddonOptions()
             keybindingToChange = key.first;
         }
         ImGui::SameLine();
-        iz dImGui::Button("Delete Key"))
-        {
+        if (ImGui::Button("Delete Key")) {
             deleteKey(key.first);
             if (keybindingToChange == key.first)
                 keybindingToChange = UINT_MAX;
