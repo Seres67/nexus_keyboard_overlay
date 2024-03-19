@@ -264,6 +264,20 @@ void AddonUnload()
     Settings::Save(SettingsPath);
 }
 
+void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
+{
+        timerPos.y += 55;
+        // 7 = ~pixel size of a char
+        // 3 = " ms" char count
+        // 4 = average number of other chars
+        timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
+        ImGui::SetCursorPos(timerPos);
+        if (key.second.isKeyPressed()) {
+            ImGui::Text("%lld ms", key.second.getPressedDuration());
+        } else {
+            ImGui::Text("%lld ms", key.second.getPressedDuration());
+        }
+}
 void displayKey(std::pair<unsigned int, Key> key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
@@ -291,17 +305,7 @@ void displayKey(std::pair<unsigned int, Key> key)
     }
     if (Settings::ShowKeyTimers) {
         ImVec2 timerPos = key.second.getPos();
-        timerPos.y += 55;
-        // 7 = ~pixel size of a char
-        // 3 = " ms" char count
-        // 4 = average number of other chars
-        timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
-        ImGui::SetCursorPos(timerPos);
-        if (key.second.isKeyPressed()) {
-            ImGui::Text("%lld ms", key.second.getPressedDuration());
-        } else {
-            ImGui::Text("%lld ms", key.second.getPressedDuration());
-        }
+        displayTimers(key, timerPos);
     }
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
