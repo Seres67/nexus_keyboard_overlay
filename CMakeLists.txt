@@ -6,10 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_SYSTEM_NAME Windows)
 set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 
+
 # cross compilers to use for C, C++ and Fortran
-set(CMAKE_C_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-gcc)
-set(CMAKE_CXX_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-g++)
-set(CMAKE_Fortran_COMPILER /usr/lib64/ccache/${TOOLCHAIN_PREFIX}-gfortran)
+set(PRIVATE_MINGW_PATH /usr/sbin)
+set(CMAKE_C_COMPILER ${PRIVATE_MINGW_PATH}/${TOOLCHAIN_PREFIX}-gcc)
+set(CMAKE_CXX_COMPILER ${PRIVATE_MINGW_PATH}/${TOOLCHAIN_PREFIX}-g++)
+set(CMAKE_Fortran_COMPILER ${PRIVATE_MINGW_PATH}/${TOOLCHAIN_PREFIX}-gfortran)
 set(CMAKE_RC_COMPILER /usr/bin/${TOOLCHAIN_PREFIX}-windres)
 
 # target environment on the build host system
@@ -29,5 +31,5 @@ include_directories(include)
 # load imgui as a cmake project
 add_subdirectory(src/imgui)
 
-add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/Key.cpp src/utils.cpp)
+add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/utils.cpp)
 target_link_libraries(nexus_keyboard_overlay imgui)

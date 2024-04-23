@@ -6,7 +6,7 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-extern const char *IS_KEYBOARD_OVERLAY_VISIBLE;
+extern const char *IS_KEYBOARD_OVERLAY_ENABLED;
 extern const char *IS_BACKGROUND_TRANSPARENT;
 extern const char *SHOW_KEY_TIMERS;
 extern const char *WINDOW_SCALE;
@@ -22,21 +22,11 @@ void Load(std::filesystem::path aPath);
 /* Saves the settings. */
 void Save(std::filesystem::path aPath);
 
-/* Global */
-
-/* Widget */
-extern bool IsWidgetEnabled;
-extern float WidgetOffsetV;
-extern float WidgetWidth;
-
+extern bool IsKeyboardOverlayEnabled;
 extern bool IsBackgroundTransparent;
 extern bool ShowKeyTimers;
 extern float WindowScale;
 extern float KeySize;
-
-/* World/Agent */
-extern bool IsAgentEnabled;
-
 } // namespace Settings
 
 #endif // !NEXUS_KEYBOARD_OVERLAY_SETTINGS_H

@@ -1,12 +1,9 @@
 #ifndef NEXUS_KEYBOARD_OVERLAY_KEY_HPP
 #define NEXUS_KEYBOARD_OVERLAY_KEY_HPP
 
-#include "Settings.h"
 #include "imgui/imgui.h"
-#include "nexus/Nexus.h"
 #include "nlohmann/json.hpp"
 #include <chrono>
-#include <memory>
 #include <string>
 #include <utils.h>
 
@@ -14,8 +11,7 @@ class Key
 {
   public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Key, m_binding_name, m_key_name, m_code,
-                                   m_pos.x, m_pos.y, m_display_size.x,
-                                   m_display_size.y)
+                                   m_pos.x, m_pos.y)
 
     Key() {}
 
@@ -25,15 +21,6 @@ class Key
           m_pos(pos)
     {
     }
-
-    // Key(const Key &key) {
-    //   m_binding_name = key.m_binding_name;
-    //   m_key_name = key.m_key_name;
-    //   m_code = key.m_code;
-    //   m_pos = key.m_pos;
-    //   // m_not_pressed_tex = key.m_not_pressed_tex;
-    //   // m_pressed_tex = key.m_pressed_tex;
-    // }
 
     const bool isKeyPressed() const { return m_pressed; }
 
@@ -48,12 +35,6 @@ class Key
 
     const ImVec2 &getPos() const { return m_pos; }
     void setPos(const ImVec2 &pos) { m_pos = pos; }
-
-    const ImVec2 &getDisplaySize() const { return m_display_size; }
-    void setDisplaySize(const ImVec2 &displaySize)
-    {
-        m_display_size = displaySize;
-    }
 
     void keyDown()
     {
@@ -94,7 +75,6 @@ class Key
     unsigned int m_code;
     bool m_pressed = false;
     ImVec2 m_pos;
-    ImVec2 m_display_size;
     std::chrono::time_point<std::chrono::steady_clock> m_start_pressing = {};
     std::chrono::time_point<std::chrono::steady_clock> m_end_pressing = {};
 };

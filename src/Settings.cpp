@@ -5,11 +5,11 @@
 #include <filesystem>
 #include <fstream>
 
-const char *IS_KEYBOARD_OVERLAY_VISIBLE = "IsKeyboardOverlayVisible";
+const char *IS_KEYBOARD_OVERLAY_ENABLED = "IsKeyboardOverlayEnabled";
 const char *IS_BACKGROUND_TRANSPARENT = "IsBackgroundTransparent";
 const char *SHOW_KEY_TIMERS = "ShowKeyTimers";
 const char *KEY_SIZE = "KeySize";
-const char *WINDOW_SCALE = "WINDOW_SCALE";
+const char *WINDOW_SCALE = "WindowScale";
 
 namespace Settings
 {
@@ -36,8 +36,8 @@ void Load(std::filesystem::path aPath)
         }
     }
     Settings::Mutex.unlock();
-    if (!Settings[IS_KEYBOARD_OVERLAY_VISIBLE].is_null())
-        Settings[IS_KEYBOARD_OVERLAY_VISIBLE].get_to(IsWidgetEnabled);
+    if (!Settings[IS_KEYBOARD_OVERLAY_ENABLED].is_null())
+        Settings[IS_KEYBOARD_OVERLAY_ENABLED].get_to(IsKeyboardOverlayEnabled);
     if (!Settings[IS_BACKGROUND_TRANSPARENT].is_null())
         Settings[IS_BACKGROUND_TRANSPARENT].get_to(IsBackgroundTransparent);
     if (!Settings[SHOW_KEY_TIMERS].is_null())
@@ -59,18 +59,9 @@ void Save(std::filesystem::path aPath)
     Settings::Mutex.unlock();
 }
 
-/* Global */
-
-bool IsWidgetEnabled = true;
-float WidgetOffsetV = 0.0f;
-float WidgetWidth = 600.0f;
-
+bool IsKeyboardOverlayEnabled = true;
 bool IsBackgroundTransparent = false;
 bool ShowKeyTimers = true;
 float WindowScale = 0.9f;
 float KeySize = 72;
-
-/* World/Agent */
-bool IsAgentEnabled = true;
-
 } // namespace Settings

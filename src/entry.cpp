@@ -1,4 +1,3 @@
-#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -286,11 +285,15 @@ void displayKey(std::pair<unsigned int, Key> key)
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           ImVec4(0.15f, 0.15f, 0.15f, 0.8f));
     ImGui::SetCursorPos(key.second.getPos());
-    if (key.second.isKeyPressed())
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.6f, 0.42f, 0.8f));
-    else
+    if (key.second.isKeyPressed()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
+        ImGui::PushStyleColor(ImGuiCol_Button,
+                              ImVec4(0.694f, 0.612f, 0.851f, 0.8f));
+    } else {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+    }
     if (key.second.getKeyName() != "Space") {
         ImGui::Button(key.second.getDisplayName().c_str(),
                       {Settings::KeySize, Settings::KeySize});
@@ -307,7 +310,7 @@ void displayKey(std::pair<unsigned int, Key> key)
         ImVec2 timerPos = key.second.getPos();
         displayTimers(key, timerPos);
     }
-    ImGui::PopStyleColor(2);
+    ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
 }
 
@@ -325,7 +328,7 @@ void AddonRender()
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoBackground;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoDecoration;
     }
-    if (Settings::IsWidgetEnabled) {
+    if (Settings::IsKeyboardOverlayEnabled) {
         ImGui::PushFont(NexusLink->Font);
         if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0, windowFlags)) {
             ImGui::SetWindowFontScale(Settings::WindowScale);
@@ -343,9 +346,10 @@ void AddonOptions()
 {
     ImGui::Text("Keyboard Overlay");
     ImGui::TextDisabled("Widget");
-    if (ImGui::Checkbox("Enabled##Widget", &Settings::IsWidgetEnabled)) {
-        Settings::Settings[IS_KEYBOARD_OVERLAY_VISIBLE] =
-            Settings::IsWidgetEnabled;
+    if (ImGui::Checkbox("Enabled##Widget",
+                        &Settings::IsKeyboardOverlayEnabled)) {
+        Settings::Settings[IS_KEYBOARD_OVERLAY_ENABLED] =
+            Settings::IsKeyboardOverlayEnabled;
         Settings::Save(SettingsPath);
     }
     if (ImGui::Checkbox("Transparent Background##background",
