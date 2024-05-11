@@ -62,7 +62,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.APIVersion = NEXUS_API_VERSION;
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
-    AddonDef.Version.Minor = 7;
+    AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 0;
     AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
