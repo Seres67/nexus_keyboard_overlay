@@ -1,7 +1,5 @@
-#include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <cwchar>
 #include <filesystem>
 #include <map>
 #include <string>
@@ -36,9 +34,9 @@ unsigned int keybindingToChange = UINT_MAX;
 char newKeybindingName[10];
 bool addingKeybinding = false;
 
-ImVec2 windowPos;
 unsigned int draggingButton = UINT_MAX;
-ImVec2 dragPos;
+ImVec2 initial_button_pos;
+ImVec2 offset{-1, -1};
 
 std::map<unsigned int, Key> keys;
 
@@ -50,10 +48,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
         hSelf = hModule;
         break;
     case DLL_PROCESS_DETACH:
-        break;
     case DLL_THREAD_ATTACH:
-        break;
     case DLL_THREAD_DETACH:
+    default:
         break;
     }
     return TRUE;
@@ -81,14 +78,14 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
 
 void KeyDown(WPARAM i_key, LPARAM lParam)
 {
-    unsigned int c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
+    unsigned int code = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
     // NUMPAD, arrow keys, right alt, right ctrl, ins, del, home, end, page
     // up, page down, num lock, (ctrl + pause), print screen, divide
     // (numpad), enter (numpad)
     if (lParam >> 24 == 1)
         Log::debug("special key");
     for (auto &&key : keys) {
-        if (!key.second.isKeyPressed() && c == key.first)
+        if (!key.second.isKeyPressed() && code == key.first)
             key.second.keyDown();
     }
 }
@@ -103,31 +100,56 @@ void KeyUp(WPARAM i_key)
 
 void MouseButtonDown(WPARAM i_key)
 {
-    unsigned int c = GET_XBUTTON_WPARAM(i_key);
-    c <<= 8;
+    int c = -1;
+    if (i_key & MK_LBUTTON)
+        c = VK_LBUTTON;
+    else if (i_key & MK_RBUTTON)
+        c = VK_RBUTTON;
+    else if (i_key & MK_XBUTTON1)
+        c = VK_XBUTTON1;
+    else if (i_key & MK_XBUTTON2)
+        c = VK_XBUTTON2;
+    if (c == -1)
+        return;
     for (auto &&key : keys)
         if (!key.second.isKeyPressed() && c == key.first)
             key.second.keyDown();
 }
 
-void MouseButtonUp(WPARAM i_key)
+void LeftMouseButtonUp()
 {
-    unsigned int c = GET_XBUTTON_WPARAM(i_key);
-    c <<= 8;
-    for (auto &&key : keys)
-        if (key.second.isKeyPressed() && c == key.first)
-            key.second.keyUp();
+    if (keys.count(VK_LBUTTON))
+        keys[VK_LBUTTON].keyUp();
+}
+
+void RightMouseButtonUp()
+{
+    if (keys.count(VK_RBUTTON))
+        keys[VK_RBUTTON].keyUp();
+}
+
+void MouseButtonUp(WPARAM wParam)
+{
+    unsigned int button = HIWORD(wParam);
+    int c = -1;
+    if (button == 1)
+        c = VK_XBUTTON1;
+    else if (button == 2)
+        c = VK_XBUTTON2;
+    if (c == -1)
+        return;
+    if (keys.count(c))
+        keys[c].keyUp();
 }
 
 void setKeybinding(WPARAM key)
 {
     unsigned int key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
-    char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
+    char buf[32];
+    long long_code = (long)key_code << 16;
+    GetKeyNameTextA(long_code, buf, sizeof(buf));
     keys[key_code].setKeyCode(key_code);
-    if (key == VK_SPACE)
-        keys[key_code].setKeyName("Space");
-    else
-        keys[key_code].setKeyName({c});
+    keys[key_code].setKeyName(buf);
     keys[key_code].setPos(keys[keybindingToChange].getPos());
     keys[key_code].setDisplayName(keys[keybindingToChange].getDisplayName());
     keys[key_code].reset();
@@ -135,18 +157,15 @@ void setKeybinding(WPARAM key)
     keybindingToChange = UINT_MAX;
 }
 
-void addKeybinding(WPARAM key, LPARAM lParam)
+void addKeybinding(WPARAM key)
 {
     unsigned int key_code = MapVirtualKey(key, MAPVK_VK_TO_VSC_EX);
-    char c = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
-
+    char buf[32];
+    long long_code = (long)key_code << 16;
+    GetKeyNameTextA(long_code, buf, sizeof(buf));
     addingKeybinding = false;
     keys[key_code].setKeyCode(key_code);
-    if (key == VK_SPACE)
-        keys[key_code].setKeyName("Space");
-    else {
-        keys[key_code].setKeyName({c});
-    }
+    keys[key_code].setKeyName(buf);
     keys[key_code].setDisplayName(newKeybindingName);
     keys[key_code].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
@@ -154,11 +173,25 @@ void addKeybinding(WPARAM key, LPARAM lParam)
 
 void setMouseKeybinding(WPARAM wParam)
 {
-    unsigned int c = GET_XBUTTON_WPARAM(wParam);
-    c <<= 8;
-
+    int c = -1;
+    std::string name;
+    if (wParam & MK_LBUTTON) {
+        c = VK_LBUTTON;
+        name = "Left Click";
+    } else if (wParam & MK_RBUTTON) {
+        c = VK_RBUTTON;
+        name = "Right Click";
+    } else if (wParam & MK_XBUTTON1) {
+        c = VK_XBUTTON1;
+        name = "Mouse Button 1";
+    } else if (wParam & MK_XBUTTON2) {
+        c = VK_XBUTTON2;
+        name = "Mouse Button 2";
+    }
+    if (c == -1)
+        return;
     keys[c].setKeyCode(c);
-    keys[c].setKeyName(c == 256 ? "Button4" : "Button5");
+    keys[c].setKeyName(name);
     keys[c].setPos(keys[keybindingToChange].getPos());
     keys[c].setDisplayName(keys[keybindingToChange].getDisplayName());
     keys[c].reset();
@@ -168,13 +201,28 @@ void setMouseKeybinding(WPARAM wParam)
 
 void addMouseButton(WPARAM wParam)
 {
-    unsigned int button_code = GET_XBUTTON_WPARAM(wParam);
-    button_code <<= 8;
+    int c = -1;
+    std::string name;
+    if (wParam & MK_LBUTTON) {
+        c = VK_LBUTTON;
+        name = "Left Click";
+    } else if (wParam & MK_RBUTTON) {
+        c = VK_RBUTTON;
+        name = "Right Click";
+    } else if (wParam & MK_XBUTTON1) {
+        c = VK_XBUTTON1;
+        name = "Mouse Button 1";
+    } else if (wParam & MK_XBUTTON2) {
+        c = VK_XBUTTON2;
+        name = "Mouse Button 2";
+    }
+    if (c == -1)
+        return;
     addingKeybinding = false;
-    keys[button_code].setKeyCode(button_code);
-    keys[button_code].setKeyName(button_code == 256 ? "Button4" : "Button5");
-    keys[button_code].setDisplayName(newKeybindingName);
-    keys[button_code].reset();
+    keys[c].setKeyCode(c);
+    keys[c].setKeyName(name);
+    keys[c].setDisplayName(newKeybindingName);
+    keys[c].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
 
@@ -182,8 +230,9 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
 {
     if (addingKeybinding) {
         if (uMsg == WM_KEYDOWN)
-            addKeybinding(wParam, lParam);
-        else if (uMsg == WM_XBUTTONDOWN)
+            addKeybinding(wParam);
+        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
+                 uMsg == WM_RBUTTONDOWN)
             addMouseButton(wParam);
     } else if (keybindingToChange == UINT_MAX) {
         switch (uMsg) {
@@ -193,9 +242,19 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
         case WM_KEYUP:
             KeyUp(wParam);
             break;
-        case WM_XBUTTONDBLCLK:
+        case WM_LBUTTONDOWN:
         case WM_XBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDBLCLK:
+        case WM_XBUTTONDBLCLK:
             MouseButtonDown(wParam);
+            break;
+        case WM_LBUTTONUP:
+            LeftMouseButtonUp();
+            break;
+        case WM_RBUTTONUP:
+            RightMouseButtonUp();
             break;
         case WM_XBUTTONUP:
             MouseButtonUp(wParam);
@@ -213,9 +272,14 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
         if (uMsg == WM_MOUSEMOVE) {
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
-            keys[draggingButton].setPos({x - windowPos.x, y - windowPos.y});
+            if (offset.x == -1)
+                offset = {static_cast<float>(x) - initial_button_pos.x,
+                          static_cast<float>(y) - initial_button_pos.y};
+            keys[draggingButton].setPos({static_cast<float>(x) - offset.x,
+                                         static_cast<float>(y) - offset.y});
         } else if (uMsg == WM_LBUTTONUP) {
             draggingButton = UINT_MAX;
+            offset = {-1, -1};
         }
     }
     return uMsg;
@@ -265,25 +329,21 @@ void AddonUnload()
 
 void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
 {
-        timerPos.y += 55;
-        // 7 = ~pixel size of a char
-        // 3 = " ms" char count
-        // 4 = average number of other chars
-        timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
-        ImGui::SetCursorPos(timerPos);
-        if (key.second.isKeyPressed()) {
-            ImGui::Text("%lld ms", key.second.getPressedDuration());
-        } else {
-            ImGui::Text("%lld ms", key.second.getPressedDuration());
-        }
+    timerPos.y += 55;
+    // 7 = average pixel size of a char
+    // 3 = " ms" char count
+    // 4 = average number of other chars
+    timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
+    ImGui::SetCursorPos(timerPos);
+    ImGui::Text("%lld ms", key.second.getPressedDuration());
 }
-void displayKey(std::pair<unsigned int, Key> key)
+
+void displayKey(const std::pair<unsigned int, Key> &key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.15f, 0.15f, 0.15f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(0.15f, 0.15f, 0.15f, 0.8f));
+                          ImVec4(0.8f, 0.8f, 0.8f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 1.f));
     ImGui::SetCursorPos(key.second.getPos());
     if (key.second.isKeyPressed()) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
@@ -304,11 +364,11 @@ void displayKey(std::pair<unsigned int, Key> key)
     ImGui::PopStyleColor();
     if (ImGui::IsItemActive()) {
         draggingButton = key.first;
-        windowPos = ImGui::GetWindowPos();
+        initial_button_pos = key.second.getPos();
     }
     if (Settings::ShowKeyTimers) {
         ImVec2 timerPos = key.second.getPos();
-        displayTimers(key, timerPos);
+        showTimers(key, timerPos);
     }
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
@@ -321,18 +381,21 @@ void AddonRender()
 {
     if (Settings::IsBackgroundTransparent &&
         (windowFlags & ImGuiWindowFlags_NoBackground) == 0)
-        windowFlags |=
-            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration;
+        windowFlags |= ImGuiWindowFlags_NoBackground |
+                       ImGuiWindowFlags_NoDecoration |
+                       ImGuiWindowFlags_NoInputs;
     else if (!Settings::IsBackgroundTransparent &&
              (windowFlags & ImGuiWindowFlags_NoBackground) != 0) {
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoBackground;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoDecoration;
+        windowFlags = windowFlags & ~ImGuiWindowFlags_NoInputs;
+        windowFlags |= ImGuiWindowFlags_NoTitleBar;
     }
     if (Settings::IsKeyboardOverlayEnabled) {
         ImGui::PushFont(NexusLink->Font);
-        if (ImGui::Begin("KEYBOARD_OVERLAY", (bool *)0, windowFlags)) {
+        if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
             ImGui::SetWindowFontScale(Settings::WindowScale);
-            for (auto &&key : keys)
+            for (const auto &key : keys)
                 displayKey(key);
         }
         ImGui::PopFont();
@@ -372,8 +435,9 @@ void AddonOptions()
         Settings::Settings[KEY_SIZE] = Settings::KeySize;
         Settings::Save(SettingsPath);
     }
-    for (auto &&key : keys) {
-        ImGui::PushID(key.first);
+    int key_to_delete = -1;
+    for (const auto &key : keys) {
+        ImGui::PushID(static_cast<int>(key.first));
         ImGui::Text("%s Key", key.second.getDisplayName().c_str());
         ImGui::SameLine();
         if (keybindingToChange == key.first) {
@@ -383,12 +447,17 @@ void AddonOptions()
         }
         ImGui::SameLine();
         if (ImGui::Button("Delete Key")) {
-            deleteKey(key.first);
+            char log[80];
+            sprintf(log, "deleting %d\n", key.first);
+            Log::debug(log);
+            key_to_delete = static_cast<int>(key.first);
             if (keybindingToChange == key.first)
                 keybindingToChange = UINT_MAX;
         }
         ImGui::PopID();
     }
+    if (key_to_delete != -1)
+        deleteKey(key_to_delete);
     ImGui::Text("New Key Name: ");
     ImGui::SameLine();
     ImGui::InputText("##newKeyName", newKeybindingName, 10);

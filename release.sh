@@ -1,5 +1,5 @@
 mkdir release
-cd release
+cd release || return
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 strip libnexus_keyboard_overlay.dll

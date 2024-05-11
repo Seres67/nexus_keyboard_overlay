@@ -1,5 +1,5 @@
 mkdir debug
-cd debug
+cd debug || return
 cmake ..
 cmake --build .
 cp libnexus_keyboard_overlay.dll "/mnt/f/Guild Wars 2/addons/keyboard_overlay.dll"

@@ -1,3 +1,6 @@
 debug/
 release/
 .cache/
+cmake-build-*/
+*.sh
+.idea/

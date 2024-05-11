@@ -5,6 +5,7 @@
 #include "nlohmann/json.hpp"
 #include <chrono>
 #include <string>
+#include <utility>
 #include <utils.h>
 
 class Key
@@ -13,32 +14,34 @@ class Key
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Key, m_binding_name, m_key_name, m_code,
                                    m_pos.x, m_pos.y)
 
-    Key() {}
+    Key() = default;
 
     Key(std::string binding_name, std::string key_name, unsigned int code,
         ImVec2 pos)
-        : m_binding_name(binding_name), m_key_name(key_name), m_code(code),
-          m_pos(pos)
+        : m_binding_name(std::move(binding_name)),
+          m_key_name(std::move(key_name)), m_code(code), m_pos(pos)
     {
     }
 
-    const bool isKeyPressed() const { return m_pressed; }
+    [[nodiscard]] bool isKeyPressed() const { return m_pressed; }
 
-    const unsigned int getKeyCode() const { return m_code; }
+    [[nodiscard]] unsigned int getKeyCode() const { return m_code; }
     void setKeyCode(unsigned int code) { m_code = code; }
 
-    const std::string &getDisplayName() const { return m_binding_name; }
+    [[nodiscard]] const std::string &getDisplayName() const
+    {
+        return m_binding_name;
+    }
     void setDisplayName(const std::string &name) { m_binding_name = name; }
 
-    const std::string &getKeyName() const { return m_key_name; }
+    [[nodiscard]] const std::string &getKeyName() const { return m_key_name; }
     void setKeyName(const std::string &name) { m_key_name = name; }
 
-    const ImVec2 &getPos() const { return m_pos; }
+    [[nodiscard]] const ImVec2 &getPos() const { return m_pos; }
     void setPos(const ImVec2 &pos) { m_pos = pos; }
 
     void keyDown()
     {
-        Log::debug("pressed down");
         m_pressed = true;
         m_start_pressing = std::chrono::steady_clock::now();
     }
@@ -72,7 +75,7 @@ class Key
   private:
     std::string m_binding_name;
     std::string m_key_name;
-    unsigned int m_code;
+    unsigned int m_code{};
     bool m_pressed = false;
     ImVec2 m_pos;
     std::chrono::time_point<std::chrono::steady_clock> m_start_pressing = {};

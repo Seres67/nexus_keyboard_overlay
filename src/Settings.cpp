@@ -16,7 +16,7 @@ namespace Settings
 std::mutex Mutex;
 json Settings = json::object();
 
-void Load(std::filesystem::path aPath)
+void Load(const std::filesystem::path &aPath)
 {
     if (!std::filesystem::exists(aPath)) {
         return;
@@ -48,7 +48,7 @@ void Load(std::filesystem::path aPath)
         Settings[KEY_SIZE].get_to(KeySize);
 }
 
-void Save(std::filesystem::path aPath)
+void Save(const std::filesystem::path &aPath)
 {
     Settings::Mutex.lock();
     {

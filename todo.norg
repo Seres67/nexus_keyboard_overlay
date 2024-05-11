@@ -4,11 +4,13 @@ description: Todo list of this project
 authors: Seres67
 categories: 
 created: 2024-03-04T02:17:50+0100
-updated: 2024-03-07T19:28:01+0100
+updated: 2024-05-11T20:04:22+0100
 version: 1.1.1
 @end
 
 * Todo
-- Cleanup code (i.e. SOLID, DRY, KISS)
+- Cleanup code
 - Changeable opacity
 - Changeable colors
+- Mouse movement
+- Bug ESC == Left click
