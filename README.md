@@ -28,8 +28,25 @@ Dependencies:
 ```bash
 git clone https://github.com/Seres67/nexus_keyboard_overlay
 cd nexus_keyboard_overlay
+mkdir build
+cd build
 cmake ..
 cmake --build .
-
 ```
 Copy libnexus_keyboard_overlay.dll to your GW2/addons folder and rename it however your like (e.g. keyboard_overlay.dll)
+
+
+### Windows
+
+Dependencies:
+- Visual Studio / Visual Studio Build Tools
+
+```bash
+git clone https://github.com/Seres67/nexus_keyboard_overlay
+cd nexus_keyboard_overlay
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
+Copy `Debug/nexus_keyboard_overlay.dll` to your GW2/addons folder and rename it however your like (e.g. keyboard_overlay.dll)
