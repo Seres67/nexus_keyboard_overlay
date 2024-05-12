@@ -63,10 +63,10 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
-    AddonDef.Version.Build = 0;
+    AddonDef.Version.Build = 1;
     AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
-    AddonDef.Description = "Adds a simple keyboard overlay to the UI.";
+    AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
     AddonDef.Unload = AddonUnload;
     AddonDef.Flags = EAddonFlags_None;
@@ -78,23 +78,21 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
 
 void KeyDown(WPARAM i_key, LPARAM lParam)
 {
-    unsigned int code = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
     // NUMPAD, arrow keys, right alt, right ctrl, ins, del, home, end, page
     // up, page down, num lock, (ctrl + pause), print screen, divide
     // (numpad), enter (numpad)
     if (lParam >> 24 == 1)
         Log::debug("special key");
     for (auto &&key : keys) {
-        if (!key.second.isKeyPressed() && code == key.first)
+        if (!key.second.isKeyPressed() && i_key == key.first)
             key.second.keyDown();
     }
 }
 
 void KeyUp(WPARAM i_key)
 {
-    unsigned int c = MapVirtualKey(i_key, MAPVK_VK_TO_VSC_EX);
     for (auto &&key : keys)
-        if (key.second.isKeyPressed() && c == key.first)
+        if (key.second.isKeyPressed() && i_key == key.first)
             key.second.keyUp();
 }
 
@@ -148,11 +146,11 @@ void setKeybinding(WPARAM key)
     char buf[32];
     long long_code = (long)key_code << 16;
     GetKeyNameTextA(long_code, buf, sizeof(buf));
-    keys[key_code].setKeyCode(key_code);
-    keys[key_code].setKeyName(buf);
-    keys[key_code].setPos(keys[keybindingToChange].getPos());
-    keys[key_code].setDisplayName(keys[keybindingToChange].getDisplayName());
-    keys[key_code].reset();
+    keys[key].setKeyCode(key_code);
+    keys[key].setKeyName(buf);
+    keys[key].setPos(keys[keybindingToChange].getPos());
+    keys[key].setDisplayName(keys[keybindingToChange].getDisplayName());
+    keys[key].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
 }
@@ -164,10 +162,10 @@ void addKeybinding(WPARAM key)
     long long_code = (long)key_code << 16;
     GetKeyNameTextA(long_code, buf, sizeof(buf));
     addingKeybinding = false;
-    keys[key_code].setKeyCode(key_code);
-    keys[key_code].setKeyName(buf);
-    keys[key_code].setDisplayName(newKeybindingName);
-    keys[key_code].reset();
+    keys[key].setKeyCode(key_code);
+    keys[key].setKeyName(buf);
+    keys[key].setDisplayName(newKeybindingName);
+    keys[key].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
 
@@ -354,7 +352,7 @@ void displayKey(const std::pair<unsigned int, Key> &key)
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
     }
-    if (key.second.getKeyName() != "Space") {
+    if (key.second.getKeyName() != "SPACE") {
         ImGui::Button(key.second.getDisplayName().c_str(),
                       {Settings::KeySize, Settings::KeySize});
     } else {
