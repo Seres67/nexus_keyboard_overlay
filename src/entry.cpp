@@ -63,7 +63,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
-    AddonDef.Version.Build = 1;
+    AddonDef.Version.Build = 2;
     AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
@@ -83,10 +83,9 @@ void KeyDown(WPARAM i_key, LPARAM lParam)
     // (numpad), enter (numpad)
     if (lParam >> 24 == 1)
         Log::debug("special key");
-    for (auto &&key : keys) {
+    for (auto &&key : keys)
         if (!key.second.isKeyPressed() && i_key == key.first)
             key.second.keyDown();
-    }
 }
 
 void KeyUp(WPARAM i_key)
@@ -96,22 +95,30 @@ void KeyUp(WPARAM i_key)
             key.second.keyUp();
 }
 
-void MouseButtonDown(WPARAM i_key)
+void LeftMouseButtonDown()
 {
+    if (keys.count(VK_LBUTTON))
+        keys[VK_LBUTTON].keyDown();
+}
+
+void RightMouseButtonDown()
+{
+    if (keys.count(VK_RBUTTON))
+        keys[VK_RBUTTON].keyDown();
+}
+
+void MouseXButtonDown(WPARAM wParam)
+{
+    unsigned int button = HIWORD(wParam);
     int c = -1;
-    if (i_key & MK_LBUTTON)
-        c = VK_LBUTTON;
-    else if (i_key & MK_RBUTTON)
-        c = VK_RBUTTON;
-    else if (i_key & MK_XBUTTON1)
+    if (button == 1)
         c = VK_XBUTTON1;
-    else if (i_key & MK_XBUTTON2)
+    else if (button == 2)
         c = VK_XBUTTON2;
     if (c == -1)
         return;
-    for (auto &&key : keys)
-        if (!key.second.isKeyPressed() && c == key.first)
-            key.second.keyDown();
+    if (keys.count(c))
+        keys[c].keyDown();
 }
 
 void LeftMouseButtonUp()
@@ -126,7 +133,7 @@ void RightMouseButtonUp()
         keys[VK_RBUTTON].keyUp();
 }
 
-void MouseButtonUp(WPARAM wParam)
+void MouseXButtonUp(WPARAM wParam)
 {
     unsigned int button = HIWORD(wParam);
     int c = -1;
@@ -240,13 +247,17 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
         case WM_KEYUP:
             KeyUp(wParam);
             break;
-        case WM_LBUTTONDOWN:
-        case WM_XBUTTONDOWN:
-        case WM_RBUTTONDOWN:
         case WM_LBUTTONDBLCLK:
+        case WM_LBUTTONDOWN:
+            LeftMouseButtonDown();
+            break;
         case WM_RBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+            RightMouseButtonDown();
+            break;
+        case WM_XBUTTONDOWN:
         case WM_XBUTTONDBLCLK:
-            MouseButtonDown(wParam);
+            MouseXButtonDown(wParam);
             break;
         case WM_LBUTTONUP:
             LeftMouseButtonUp();
@@ -255,7 +266,7 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
             RightMouseButtonUp();
             break;
         case WM_XBUTTONUP:
-            MouseButtonUp(wParam);
+            MouseXButtonUp(wParam);
             break;
         default:
             break;
@@ -307,7 +318,7 @@ void AddonLoad(AddonAPI *aApi)
     if (!Settings::Settings["AllKeybindings"].is_null())
         Settings::Settings["AllKeybindings"].get_to(keys);
 
-    Log::info("finished loading all settings!");
+    Log::info("finished applying all settings!");
 }
 
 void AddonUnload()
@@ -445,9 +456,6 @@ void AddonOptions()
         }
         ImGui::SameLine();
         if (ImGui::Button("Delete Key")) {
-            char log[80];
-            sprintf(log, "deleting %d\n", key.first);
-            Log::debug(log);
             key_to_delete = static_cast<int>(key.first);
             if (keybindingToChange == key.first)
                 keybindingToChange = UINT_MAX;
