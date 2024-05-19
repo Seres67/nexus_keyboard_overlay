@@ -394,7 +394,7 @@ void displayKey(const std::pair<unsigned int, Key> &key)
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
     }
-    if (key.second.getKeyName() != "SPACE") {
+    if (key.second.getKeyCode() != 57) {
         ImGui::Button(key.second.getDisplayName().c_str(),
                       {SettingsVars::KeySize, SettingsVars::KeySize});
     } else {
@@ -431,6 +431,7 @@ void AddonRender()
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoInputs;
         windowFlags |= ImGuiWindowFlags_NoTitleBar;
     }
+    ImGui::SetNextWindowSizeConstraints({40, 40}, {FLT_MAX, FLT_MAX});
     if (SettingsVars::IsKeyboardOverlayEnabled) {
         if (SettingsVars::AlwaysDisplayed || NexusLink->IsGameplay) {
             ImGui::PushFont(NexusLink->Font);
