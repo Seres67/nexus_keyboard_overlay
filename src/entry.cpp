@@ -107,6 +107,12 @@ void RightMouseButtonDown()
         keys[VK_RBUTTON].keyDown();
 }
 
+void MiddleMouseButtonDown()
+{
+    if (keys.count(VK_MBUTTON))
+        keys[VK_MBUTTON].keyDown();
+}
+
 void MouseXButtonDown(WPARAM wParam)
 {
     unsigned int button = HIWORD(wParam);
@@ -131,6 +137,12 @@ void RightMouseButtonUp()
 {
     if (keys.count(VK_RBUTTON))
         keys[VK_RBUTTON].keyUp();
+}
+
+void MiddleMouseButtonUp()
+{
+    if (keys.count(VK_MBUTTON))
+        keys[VK_MBUTTON].keyUp();
 }
 
 void MouseXButtonUp(WPARAM wParam)
@@ -192,6 +204,9 @@ void setMouseKeybinding(WPARAM wParam)
     } else if (wParam & MK_XBUTTON2) {
         c = VK_XBUTTON2;
         name = "Mouse Button 2";
+    } else if (wParam & MK_MBUTTON) {
+        c = VK_MBUTTON;
+        name = "Middle Mouse Button";
     }
     if (c == -1)
         return;
@@ -220,6 +235,9 @@ void addMouseButton(WPARAM wParam)
     } else if (wParam & MK_XBUTTON2) {
         c = VK_XBUTTON2;
         name = "Mouse Button 2";
+    } else if (wParam & MK_MBUTTON) {
+        c = VK_MBUTTON;
+        name = "Middle Mouse Button";
     }
     if (c == -1)
         return;
@@ -233,11 +251,16 @@ void addMouseButton(WPARAM wParam)
 
 unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
 {
+    //    if (uMsg != 132 && uMsg != 512 && uMsg != 32) {
+    //        char log[80];
+    //        sprintf(log, "event: %d", uMsg);
+    //        Log::debug(log);
+    //    }
     if (addingKeybinding) {
         if (uMsg == WM_KEYDOWN)
             addKeybinding(wParam);
         else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
-                 uMsg == WM_RBUTTONDOWN)
+                 uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
             addMouseButton(wParam);
     } else if (keybindingToChange == UINT_MAX) {
         switch (uMsg) {
@@ -255,6 +278,10 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
         case WM_RBUTTONDOWN:
             RightMouseButtonDown();
             break;
+        case WM_MBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+            MiddleMouseButtonDown();
+            break;
         case WM_XBUTTONDOWN:
         case WM_XBUTTONDBLCLK:
             MouseXButtonDown(wParam);
@@ -265,6 +292,9 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
         case WM_RBUTTONUP:
             RightMouseButtonUp();
             break;
+        case WM_MBUTTONUP:
+            MiddleMouseButtonUp();
+            break;
         case WM_XBUTTONUP:
             MouseXButtonUp(wParam);
             break;
@@ -274,7 +304,8 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
     } else {
         if (uMsg == WM_KEYDOWN)
             setKeybinding(wParam);
-        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK)
+        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
+                 uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
             setMouseKeybinding(wParam);
     }
     if (draggingButton != UINT_MAX) {
