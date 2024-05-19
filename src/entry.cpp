@@ -64,7 +64,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 2;
-    AddonDef.Version.Revision = 0;
+    AddonDef.Version.Revision = 1;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -305,20 +305,20 @@ void AddonLoad(AddonAPI *aApi)
     MumbleLink = (Mumble::Data *)APIDefs->GetResource("DL_MUMBLE_LINK");
     NexusLink = (NexusLinkData *)APIDefs->GetResource("DL_NEXUS_LINK");
 
-    APIDefs->RegisterWndProc(WndProc);
-
-    APIDefs->RegisterRender(ERenderType_Render, AddonRender);
-    APIDefs->RegisterRender(ERenderType_OptionsRender, AddonOptions);
-
     AddonPath = APIDefs->GetAddonDirectory("keyboard_overlay");
     SettingsPath = APIDefs->GetAddonDirectory("keyboard_overlay/settings.json");
     std::filesystem::create_directory(AddonPath);
     Settings::Load(SettingsPath);
 
-    if (!Settings::Settings["AllKeybindings"].is_null())
-        Settings::Settings["AllKeybindings"].get_to(keys);
+    if (!Settings::m_json_settings["AllKeybindings"].is_null())
+        Settings::m_json_settings["AllKeybindings"].get_to(keys);
 
     Log::info("finished applying all settings!");
+
+    APIDefs->RegisterWndProc(WndProc);
+
+    APIDefs->RegisterRender(ERenderType_Render, AddonRender);
+    APIDefs->RegisterRender(ERenderType_OptionsRender, AddonOptions);
 }
 
 void AddonUnload()
@@ -332,7 +332,7 @@ void AddonUnload()
     NexusLink = nullptr;
 
     json settings_json = keys;
-    Settings::Settings["AllKeybindings"] = settings_json;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
@@ -342,7 +342,7 @@ void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
     // 7 = average pixel size of a char
     // 3 = " ms" char count
     // 4 = average number of other chars
-    timerPos.x += (Settings::KeySize - (7 * (3 + 4))) / 2;
+    timerPos.x += (SettingsVars::KeySize - (7 * (3 + 4))) / 2;
     ImGui::SetCursorPos(timerPos);
     ImGui::Text("%lld ms", key.second.getPressedDuration());
 }
@@ -365,17 +365,17 @@ void displayKey(const std::pair<unsigned int, Key> &key)
     }
     if (key.second.getKeyName() != "SPACE") {
         ImGui::Button(key.second.getDisplayName().c_str(),
-                      {Settings::KeySize, Settings::KeySize});
+                      {SettingsVars::KeySize, SettingsVars::KeySize});
     } else {
         ImGui::Button(key.second.getDisplayName().c_str(),
-                      {Settings::KeySize * 2, Settings::KeySize});
+                      {SettingsVars::KeySize * 2, SettingsVars::KeySize});
     }
     ImGui::PopStyleColor();
     if (ImGui::IsItemActive()) {
         draggingButton = key.first;
         initial_button_pos = key.second.getPos();
     }
-    if (Settings::ShowKeyTimers) {
+    if (SettingsVars::ShowKeyTimers) {
         ImVec2 timerPos = key.second.getPos();
         showTimers(key, timerPos);
     }
@@ -388,27 +388,29 @@ ImGuiWindowFlags windowFlags =
     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
 void AddonRender()
 {
-    if (Settings::IsBackgroundTransparent &&
+    if (SettingsVars::IsBackgroundTransparent &&
         (windowFlags & ImGuiWindowFlags_NoBackground) == 0)
         windowFlags |= ImGuiWindowFlags_NoBackground |
                        ImGuiWindowFlags_NoDecoration |
                        ImGuiWindowFlags_NoInputs;
-    else if (!Settings::IsBackgroundTransparent &&
+    else if (!SettingsVars::IsBackgroundTransparent &&
              (windowFlags & ImGuiWindowFlags_NoBackground) != 0) {
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoBackground;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoDecoration;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoInputs;
         windowFlags |= ImGuiWindowFlags_NoTitleBar;
     }
-    if (Settings::IsKeyboardOverlayEnabled) {
-        ImGui::PushFont(NexusLink->Font);
-        if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
-            ImGui::SetWindowFontScale(Settings::WindowScale);
-            for (const auto &key : keys)
-                displayKey(key);
+    if (SettingsVars::IsKeyboardOverlayEnabled) {
+        if (SettingsVars::AlwaysDisplayed || NexusLink->IsGameplay) {
+            ImGui::PushFont(NexusLink->Font);
+            if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
+                ImGui::SetWindowFontScale(SettingsVars::WindowScale);
+                for (const auto &key : keys)
+                    displayKey(key);
+            }
+            ImGui::PopFont();
+            ImGui::End();
         }
-        ImGui::PopFont();
-        ImGui::End();
     }
 }
 
@@ -419,29 +421,37 @@ void AddonOptions()
     ImGui::Text("Keyboard Overlay");
     ImGui::TextDisabled("Widget");
     if (ImGui::Checkbox("Enabled##Widget",
-                        &Settings::IsKeyboardOverlayEnabled)) {
-        Settings::Settings[IS_KEYBOARD_OVERLAY_ENABLED] =
-            Settings::IsKeyboardOverlayEnabled;
+                        &SettingsVars::IsKeyboardOverlayEnabled)) {
+        Settings::m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED] =
+            SettingsVars::IsKeyboardOverlayEnabled;
+        Settings::Save(SettingsPath);
+    }
+    if (ImGui::Checkbox("Always Displayed##always",
+                        &SettingsVars::AlwaysDisplayed)) {
+        Settings::m_json_settings[ALWAYS_DISPLAYED] =
+            SettingsVars::AlwaysDisplayed;
         Settings::Save(SettingsPath);
     }
     if (ImGui::Checkbox("Transparent Background##background",
-                        &Settings::IsBackgroundTransparent)) {
-        Settings::Settings[IS_BACKGROUND_TRANSPARENT] =
-            Settings::IsBackgroundTransparent;
+                        &SettingsVars::IsBackgroundTransparent)) {
+        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] =
+            SettingsVars::IsBackgroundTransparent;
         Settings::Save(SettingsPath);
     }
     if (ImGui::Checkbox("Show Key Timers##KeyTimers",
-                        &Settings::ShowKeyTimers)) {
-        Settings::Settings[SHOW_KEY_TIMERS] = Settings::ShowKeyTimers;
+                        &SettingsVars::ShowKeyTimers)) {
+        Settings::m_json_settings[SHOW_KEY_TIMERS] =
+            SettingsVars::ShowKeyTimers;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::SliderFloat("Window Scale##Scale", &Settings::WindowScale, 0.1,
-                           3.0)) {
-        Settings::Settings[WINDOW_SCALE] = Settings::WindowScale;
+    if (ImGui::SliderFloat("Window Scale##Scale", &SettingsVars::WindowScale,
+                           0.1, 3.0)) {
+        Settings::m_json_settings[WINDOW_SCALE] = SettingsVars::WindowScale;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::SliderFloat("KeySize##KeySize", &Settings::KeySize, 1, 200)) {
-        Settings::Settings[KEY_SIZE] = Settings::KeySize;
+    if (ImGui::SliderFloat("KeySize##KeySize", &SettingsVars::KeySize, 1,
+                           200)) {
+        Settings::m_json_settings[KEY_SIZE] = SettingsVars::KeySize;
         Settings::Save(SettingsPath);
     }
     int key_to_delete = -1;

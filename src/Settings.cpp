@@ -1,6 +1,7 @@
 #include <Settings.h>
 
 #include "Shared.h"
+#include "utils.h"
 
 #include <filesystem>
 #include <fstream>
@@ -10,24 +11,28 @@ const char *IS_BACKGROUND_TRANSPARENT = "IsBackgroundTransparent";
 const char *SHOW_KEY_TIMERS = "ShowKeyTimers";
 const char *KEY_SIZE = "KeySize";
 const char *WINDOW_SCALE = "WindowScale";
+const char *ALWAYS_DISPLAYED = "AlwaysDisplayed";
 
-namespace Settings
-{
-std::mutex Mutex;
-json Settings = json::object();
+json Settings::m_json_settings;
+std::mutex Settings::m_mutex;
 
-void Load(const std::filesystem::path &aPath)
+void Settings::Load(const std::filesystem::path &aPath)
 {
+    m_json_settings = json::object();
     if (!std::filesystem::exists(aPath)) {
         return;
     }
 
-    Settings::Mutex.lock();
     {
+        std::lock_guard lock(m_mutex);
         try {
             std::ifstream file(aPath);
-            Settings = json::parse(file);
-            file.close();
+            if (file.is_open()) {
+                Log::debug("file is open");
+                m_json_settings = json::parse(file);
+                file.close();
+                Log::debug("closed file");
+            }
         } catch (json::parse_error &ex) {
             APIDefs->Log(
                 ELogLevel_WARNING,
@@ -35,33 +40,44 @@ void Load(const std::filesystem::path &aPath)
             APIDefs->Log(ELogLevel_WARNING, ex.what());
         }
     }
-    Settings::Mutex.unlock();
-    if (!Settings[IS_KEYBOARD_OVERLAY_ENABLED].is_null())
-        Settings[IS_KEYBOARD_OVERLAY_ENABLED].get_to(IsKeyboardOverlayEnabled);
-    if (!Settings[IS_BACKGROUND_TRANSPARENT].is_null())
-        Settings[IS_BACKGROUND_TRANSPARENT].get_to(IsBackgroundTransparent);
-    if (!Settings[SHOW_KEY_TIMERS].is_null())
-        Settings[SHOW_KEY_TIMERS].get_to(ShowKeyTimers);
-    if (!Settings[WINDOW_SCALE].is_null())
-        Settings[WINDOW_SCALE].get_to(WindowScale);
-    if (!Settings[KEY_SIZE].is_null())
-        Settings[KEY_SIZE].get_to(KeySize);
+    if (!m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED].is_null())
+        m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED].get_to(
+            SettingsVars::IsKeyboardOverlayEnabled);
+    if (!m_json_settings[IS_BACKGROUND_TRANSPARENT].is_null())
+        m_json_settings[IS_BACKGROUND_TRANSPARENT].get_to(
+            SettingsVars::IsBackgroundTransparent);
+    if (!m_json_settings[SHOW_KEY_TIMERS].is_null())
+        m_json_settings[SHOW_KEY_TIMERS].get_to(SettingsVars::ShowKeyTimers);
+    if (!m_json_settings[WINDOW_SCALE].is_null())
+        m_json_settings[WINDOW_SCALE].get_to(SettingsVars::WindowScale);
+    if (!m_json_settings[KEY_SIZE].is_null())
+        m_json_settings[KEY_SIZE].get_to(SettingsVars::KeySize);
+    if (!m_json_settings[ALWAYS_DISPLAYED].is_null())
+        m_json_settings[ALWAYS_DISPLAYED].get_to(SettingsVars::AlwaysDisplayed);
 }
 
-void Save(const std::filesystem::path &aPath)
+void Settings::Save(const std::filesystem::path &aPath)
 {
-    Settings::Mutex.lock();
-    {
-        std::ofstream file(aPath);
-        file << Settings.dump(1, '\t') << std::endl;
-        file.close();
+    if (m_json_settings.is_null()) {
+        Log::debug("settings is null");
+        return;
     }
-    Settings::Mutex.unlock();
+    {
+        std::lock_guard lock(m_mutex);
+        std::ofstream file(aPath);
+        if (file.is_open()) {
+            file << m_json_settings.dump(1, '\t') << std::endl;
+            file.close();
+        }
+    }
 }
 
+namespace SettingsVars
+{
 bool IsKeyboardOverlayEnabled = true;
 bool IsBackgroundTransparent = false;
 bool ShowKeyTimers = true;
 float WindowScale = 0.9f;
 float KeySize = 72;
-} // namespace Settings
+bool AlwaysDisplayed = false;
+} // namespace SettingsVars

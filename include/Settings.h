@@ -11,22 +11,28 @@ extern const char *IS_BACKGROUND_TRANSPARENT;
 extern const char *SHOW_KEY_TIMERS;
 extern const char *WINDOW_SCALE;
 extern const char *KEY_SIZE;
+extern const char *ALWAYS_DISPLAYED;
 
-namespace Settings
+class Settings
 {
-extern std::mutex Mutex;
-extern json Settings;
+  public:
+    static void Load(const std::filesystem::path &aPath);
+    static void Save(const std::filesystem::path &aPath);
 
-/* Loads the settings. */
-void Load(const std::filesystem::path &aPath);
-/* Saves the settings. */
-void Save(const std::filesystem::path &aPath);
+    static json m_json_settings;
 
+  private:
+    static std::mutex m_mutex;
+};
+
+namespace SettingsVars
+{
 extern bool IsKeyboardOverlayEnabled;
 extern bool IsBackgroundTransparent;
 extern bool ShowKeyTimers;
 extern float WindowScale;
 extern float KeySize;
-} // namespace Settings
+extern bool AlwaysDisplayed;
+} // namespace SettingsVars
 
 #endif // !NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
