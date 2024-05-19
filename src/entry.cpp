@@ -64,7 +64,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 3;
-    AddonDef.Version.Revision = 0;
+    AddonDef.Version.Revision = 1;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -169,6 +169,7 @@ void setKeybinding(WPARAM key)
     keys[key].setKeyName(buf);
     keys[key].setPos(keys[keybindingToChange].getPos());
     keys[key].setDisplayName(keys[keybindingToChange].getDisplayName());
+    keys[key].setSize(keys[keybindingToChange].getSize());
     keys[key].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
@@ -215,6 +216,7 @@ void setMouseKeybinding(WPARAM wParam)
     keys[c].setKeyName(name);
     keys[c].setPos(keys[keybindingToChange].getPos());
     keys[c].setDisplayName(keys[keybindingToChange].getDisplayName());
+    keys[c].setSize(keys[keybindingToChange].getSize());
     keys[c].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
@@ -259,16 +261,18 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
     //        Log::debug(log);
     //    }
     if (addingKeybinding) {
-        if (uMsg == WM_KEYDOWN)
+        if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
             addKeybinding(wParam);
         else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
                  uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
             addMouseButton(wParam);
     } else if (keybindingToChange == UINT_MAX) {
         switch (uMsg) {
+        case WM_SYSKEYDOWN:
         case WM_KEYDOWN:
             KeyDown(wParam, lParam);
             break;
+        case WM_SYSKEYUP:
         case WM_KEYUP:
             KeyUp(wParam);
             break;
@@ -304,7 +308,7 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
             break;
         }
     } else {
-        if (uMsg == WM_KEYDOWN)
+        if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
             setKeybinding(wParam);
         else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
                  uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
@@ -494,30 +498,26 @@ void AddonOptions()
             ImGui::TableNextRow();
 
             ImGui::PushID(static_cast<int>(key.first));
-            ImGui::TableSetColumnIndex(
-                0); // which column do we wanna input stuff
-
+            ImGui::TableSetColumnIndex(0);
             ImGui::Text("%s Key", key.second.getDisplayName().c_str());
-            ImGui::TableSetColumnIndex(
-                1); // which column do we wanna input stuff
+            ImGui::TableSetColumnIndex(1);
             if (keybindingToChange == key.first) {
                 ImGui::Button("Press key to bind");
             } else if (ImGui::Button(key.second.getKeyName().c_str())) {
                 keybindingToChange = key.first;
             }
-            ImGui::TableSetColumnIndex(
-                2); // which column do we wanna input stuff
+            ImGui::TableSetColumnIndex(2);
             if (ImGui::Button("Delete Key")) {
                 key_to_delete = static_cast<int>(key.first);
                 if (keybindingToChange == key.first)
                     keybindingToChange = UINT_MAX;
             }
-            ImGui::PushItemWidth(30.f);
-            ImGui::TableSetColumnIndex(
-                3); // which column do we wanna input stuff
+            ImGui::TableSetColumnIndex(3);
+            ImGui::PushItemWidth(60.f);
             ImGui::InputFloat("Width", &key.second.getSize().x);
-            ImGui::TableSetColumnIndex(
-                4); // which column do we wanna input stuff
+            ImGui::PopItemWidth();
+            ImGui::TableSetColumnIndex(4);
+            ImGui::PushItemWidth(60.f);
             ImGui::InputFloat("Height", &key.second.getSize().y);
             ImGui::PopItemWidth();
             ImGui::PopID();
