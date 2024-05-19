@@ -184,7 +184,7 @@ void addKeybinding(WPARAM key)
     keys[key].setKeyCode(key_code);
     keys[key].setKeyName(buf);
     keys[key].setDisplayName(newKeybindingName);
-    keys[key].setSize({72, 72});
+    keys[key].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[key].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
@@ -246,7 +246,7 @@ void addMouseButton(WPARAM wParam)
     keys[c].setKeyCode(c);
     keys[c].setKeyName(name);
     keys[c].setDisplayName(newKeybindingName);
-    keys[c].setSize({72, 72});
+    keys[c].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[c].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
