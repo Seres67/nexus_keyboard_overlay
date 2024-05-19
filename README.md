@@ -17,6 +17,10 @@ Download the addon from the [Releases](https://github.com/Seres67/nexus_keyboard
 You should be able to hot-load it (so, no need to restart the game), but if it doesn't work just restart the game.  
 Configure it by pressing the Nexus icon -> Options -> Addons -> Keyboard Overlay
 
+## Planned features
+
+I have a list of planned features [here](https://github.com/Seres67/nexus_keyboard_overlay/blob/main/todo.norg)
+
 ## Build it yourself
 
 ### Linux
