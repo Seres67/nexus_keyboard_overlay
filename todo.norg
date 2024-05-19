@@ -4,7 +4,7 @@ description: Todo list of this project
 authors: Seres67
 categories: 
 created: 2024-03-04T02:17:50+0100
-updated: 2024-05-11T20:04:22+0100
+updated: 2024-05-11T02:36:41+0100
 version: 1.1.1
 @end
 
@@ -13,6 +13,5 @@ version: 1.1.1
 - Changeable opacity
 - Changeable colors
 - Mouse movement
-- add Mouse wheel click
 - grid/snapping
 - individually resizable keys / non-square keys
