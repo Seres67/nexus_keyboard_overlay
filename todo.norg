@@ -13,3 +13,5 @@ version: 1.1.1
 - Changeable opacity
 - Changeable colors
 - Mouse movement
+- add Mouse wheel click
+- grid/snapping
