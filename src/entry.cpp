@@ -63,8 +63,8 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
-    AddonDef.Version.Build = 2;
-    AddonDef.Version.Revision = 2;
+    AddonDef.Version.Build = 3;
+    AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -184,6 +184,7 @@ void addKeybinding(WPARAM key)
     keys[key].setKeyCode(key_code);
     keys[key].setKeyName(buf);
     keys[key].setDisplayName(newKeybindingName);
+    keys[key].setSize({72, 72});
     keys[key].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
@@ -245,6 +246,7 @@ void addMouseButton(WPARAM wParam)
     keys[c].setKeyCode(c);
     keys[c].setKeyName(name);
     keys[c].setDisplayName(newKeybindingName);
+    keys[c].setSize({72, 72});
     keys[c].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
 }
@@ -340,9 +342,15 @@ void AddonLoad(AddonAPI *aApi)
     SettingsPath = APIDefs->GetAddonDirectory("keyboard_overlay/settings.json");
     std::filesystem::create_directory(AddonPath);
     Settings::Load(SettingsPath);
-
-    if (!Settings::m_json_settings["AllKeybindings"].is_null())
+    if (!Settings::m_json_settings["AllKeybindings"].is_null()) {
+        for (auto &key : Settings::m_json_settings["AllKeybindings"]) {
+            if (key[1]["m_size.x"].is_null())
+                key[1]["m_size.x"] = SettingsVars::KeySize;
+            if (key[1]["m_size.y"].is_null())
+                key[1]["m_size.y"] = SettingsVars::KeySize;
+        }
         Settings::m_json_settings["AllKeybindings"].get_to(keys);
+    }
 
     Log::info("finished applying all settings!");
 
@@ -373,12 +381,12 @@ void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
     // 7 = average pixel size of a char
     // 3 = " ms" char count
     // 4 = average number of other chars
-    timerPos.x += (SettingsVars::KeySize - (7 * (3 + 4))) / 2;
+    timerPos.x += (key.second.getSize().x - (7 * (3 + 4))) / 2;
     ImGui::SetCursorPos(timerPos);
     ImGui::Text("%lld ms", key.second.getPressedDuration());
 }
 
-void displayKey(const std::pair<unsigned int, Key> &key)
+void displayKey(std::pair<const unsigned int, Key> &key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -394,13 +402,7 @@ void displayKey(const std::pair<unsigned int, Key> &key)
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
     }
-    if (key.second.getKeyCode() != 57) {
-        ImGui::Button(key.second.getDisplayName().c_str(),
-                      {SettingsVars::KeySize, SettingsVars::KeySize});
-    } else {
-        ImGui::Button(key.second.getDisplayName().c_str(),
-                      {SettingsVars::KeySize * 2, SettingsVars::KeySize});
-    }
+    ImGui::Button(key.second.getDisplayName().c_str(), key.second.getSize());
     ImGui::PopStyleColor();
     if (ImGui::IsItemActive()) {
         draggingButton = key.first;
@@ -437,7 +439,7 @@ void AddonRender()
             ImGui::PushFont(NexusLink->Font);
             if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
                 ImGui::SetWindowFontScale(SettingsVars::WindowScale);
-                for (const auto &key : keys)
+                for (auto &key : keys)
                     displayKey(key);
             }
             ImGui::PopFont();
@@ -487,22 +489,40 @@ void AddonOptions()
         Settings::Save(SettingsPath);
     }
     int key_to_delete = -1;
-    for (const auto &key : keys) {
-        ImGui::PushID(static_cast<int>(key.first));
-        ImGui::Text("%s Key", key.second.getDisplayName().c_str());
-        ImGui::SameLine();
-        if (keybindingToChange == key.first) {
-            ImGui::Button("Press key to bind");
-        } else if (ImGui::Button(key.second.getKeyName().c_str())) {
-            keybindingToChange = key.first;
+    if (ImGui::BeginTable("Keys##keys_table", 5)) {
+        for (auto &key : keys) {
+            ImGui::TableNextRow();
+
+            ImGui::PushID(static_cast<int>(key.first));
+            ImGui::TableSetColumnIndex(
+                0); // which column do we wanna input stuff
+
+            ImGui::Text("%s Key", key.second.getDisplayName().c_str());
+            ImGui::TableSetColumnIndex(
+                1); // which column do we wanna input stuff
+            if (keybindingToChange == key.first) {
+                ImGui::Button("Press key to bind");
+            } else if (ImGui::Button(key.second.getKeyName().c_str())) {
+                keybindingToChange = key.first;
+            }
+            ImGui::TableSetColumnIndex(
+                2); // which column do we wanna input stuff
+            if (ImGui::Button("Delete Key")) {
+                key_to_delete = static_cast<int>(key.first);
+                if (keybindingToChange == key.first)
+                    keybindingToChange = UINT_MAX;
+            }
+            ImGui::PushItemWidth(30.f);
+            ImGui::TableSetColumnIndex(
+                3); // which column do we wanna input stuff
+            ImGui::InputFloat("Width", &key.second.getSize().x);
+            ImGui::TableSetColumnIndex(
+                4); // which column do we wanna input stuff
+            ImGui::InputFloat("Height", &key.second.getSize().y);
+            ImGui::PopItemWidth();
+            ImGui::PopID();
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Delete Key")) {
-            key_to_delete = static_cast<int>(key.first);
-            if (keybindingToChange == key.first)
-                keybindingToChange = UINT_MAX;
-        }
-        ImGui::PopID();
+        ImGui::EndTable();
     }
     if (key_to_delete != -1)
         deleteKey(key_to_delete);

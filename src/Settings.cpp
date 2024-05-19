@@ -28,10 +28,8 @@ void Settings::Load(const std::filesystem::path &aPath)
         try {
             std::ifstream file(aPath);
             if (file.is_open()) {
-                Log::debug("file is open");
                 m_json_settings = json::parse(file);
                 file.close();
-                Log::debug("closed file");
             }
         } catch (json::parse_error &ex) {
             APIDefs->Log(

@@ -12,14 +12,15 @@ class Key
 {
   public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Key, m_binding_name, m_key_name, m_code,
-                                   m_pos.x, m_pos.y)
+                                   m_pos.x, m_pos.y, m_size.x, m_size.y)
 
     Key() = default;
 
     Key(std::string binding_name, std::string key_name, unsigned int code,
-        ImVec2 pos)
+        ImVec2 pos, ImVec2 size)
         : m_binding_name(std::move(binding_name)),
-          m_key_name(std::move(key_name)), m_code(code), m_pos(pos)
+          m_key_name(std::move(key_name)), m_code(code), m_pos(pos),
+          m_size(size)
     {
     }
 
@@ -39,6 +40,9 @@ class Key
 
     [[nodiscard]] const ImVec2 &getPos() const { return m_pos; }
     void setPos(const ImVec2 &pos) { m_pos = pos; }
+
+    [[nodiscard]] ImVec2 &getSize() { return m_size; }
+    void setSize(const ImVec2 &size) { m_size = size; }
 
     void keyDown()
     {
@@ -78,6 +82,7 @@ class Key
     unsigned int m_code{};
     bool m_pressed = false;
     ImVec2 m_pos;
+    ImVec2 m_size;
     std::chrono::time_point<std::chrono::steady_clock> m_start_pressing = {};
     std::chrono::time_point<std::chrono::steady_clock> m_end_pressing = {};
 };
