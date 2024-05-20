@@ -12,6 +12,9 @@ Youtube video by Delta showcasing the addon [here](https://youtu.be/LspSSRQHLpE)
 - Add and place keys where you want!
 - Your layout is saved and loaded on launch
 - Toggle-able transparency (opacity is set to 80% by default so you can almost see what's going on under it)
+- Pick your favorite color to display when keys are highlighted
+- Set your keys to different sizes
+- Disable key highlighting while typing in chat
 
 ## Usage
 
