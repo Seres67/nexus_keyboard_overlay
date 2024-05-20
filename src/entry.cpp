@@ -63,8 +63,8 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Name = "Keyboard Overlay";
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
-    AddonDef.Version.Build = 3;
-    AddonDef.Version.Revision = 2;
+    AddonDef.Version.Build = 4;
+    AddonDef.Version.Revision = 0;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
