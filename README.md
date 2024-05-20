@@ -11,7 +11,7 @@ Youtube video by Delta showcasing the addon [here](https://youtu.be/LspSSRQHLpE)
 - Handles normal keys, NUMPAD and mouse keys. ⚠️ shifted keys are not handled (though shift can be added as a seperate key) ⚠️
 - Add and place keys where you want!
 - Your layout is saved and loaded on launch
-- Toggle-able transparency (opacity is set to 80% by default so you can almost see what's going on under it)
+- Toggle-able transparency (opacity is set to 80% by default)
 - Pick your favorite color to display when keys are highlighted
 - Set your keys to different sizes
 - Disable key highlighting while typing in chat
@@ -21,11 +21,16 @@ Youtube video by Delta showcasing the addon [here](https://youtu.be/LspSSRQHLpE)
 Download & install [Nexus](https://raidcore.gg/Nexus) and run Guild Wars 2 once to set up Nexus.  
 Download the addon from the [Releases](https://github.com/Seres67/nexus_keyboard_overlay/releases/latest), and put it in the GW2/addons directory.  
 You should be able to hot-load it (so, no need to restart the game), but if it doesn't work just restart the game.  
-Configure it by pressing the Nexus icon -> Options -> Addons -> Keyboard Overlay
+Configure it by pressing the Nexus icon -> Options -> Addons -> Keyboard Overlay.
 
 ## Planned features
 
-I have a list of planned features [here](https://github.com/Seres67/nexus_keyboard_overlay/blob/main/todo.norg)
+I have a list of planned features [here](https://github.com/Seres67/nexus_keyboard_overlay/blob/main/todo.norg).
+
+## Issues
+
+If you encounter any crashes/issues, join the Nexus discord [here](https://discord.gg/MSgPhDv) and send your Nexus.log (in `<GW2>/addons/Nexus`) and a quick
+explanation of what you did just before the crash in the `keyboard_overlay` channel.
 
 ## Build it yourself
 
