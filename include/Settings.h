@@ -2,8 +2,9 @@
 #define NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
 
 #include <mutex>
-
+#include "imgui/imgui.h"
 #include "nlohmann/json.hpp"
+
 using json = nlohmann::json;
 
 extern const char *IS_KEYBOARD_OVERLAY_ENABLED;
@@ -12,6 +13,7 @@ extern const char *SHOW_KEY_TIMERS;
 extern const char *WINDOW_SCALE;
 extern const char *KEY_SIZE;
 extern const char *ALWAYS_DISPLAYED;
+extern const char *PRESSED_KEY_COLOR;
 
 class Settings
 {
@@ -34,6 +36,7 @@ extern float WindowScale;
 extern float KeySize;
 extern bool AlwaysDisplayed;
 extern bool DisableInChat;
+extern ImU32 KeyPressedColor;
 } // namespace SettingsVars
 
 #endif // !NEXUS_KEYBOARD_OVERLAY_SETTINGS_H

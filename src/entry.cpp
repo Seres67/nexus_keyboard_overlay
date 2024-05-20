@@ -64,7 +64,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 4;
-    AddonDef.Version.Revision = 0;
+    AddonDef.Version.Revision = 1;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -393,24 +393,21 @@ void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
 void displayKey(std::pair<const unsigned int, Key> &key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-    int style_cout = 0;
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           ImVec4(0.8f, 0.8f, 0.8f, 1.f));
-    ++style_cout;
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 1.f));
-    ++style_cout;
-
+    int style_cout = 2;
     ImGui::SetCursorPos(key.second.getPos());
     if (key.second.isKeyPressed()) {
         if (!SettingsVars::DisableInChat ||
             !MumbleLink->Context.IsTextboxFocused) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
             ImGui::PushStyleColor(ImGuiCol_Button,
-                                  ImVec4(0.694f, 0.612f, 0.851f, 0.8f));
-            ++style_cout;
-            ++style_cout;
+                                  SettingsVars::KeyPressedColor);
+            style_cout += 2;
         } else {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
+            ++style_cout;
             if (SettingsVars::IsBackgroundTransparent) {
                 ImGui::PushStyleColor(
                     ImGuiCol_Button,
@@ -497,6 +494,27 @@ void AddonRender()
 
 void deleteKey(unsigned int code) { keys.erase(code); }
 
+namespace ImGui
+{
+bool ColorEdit4U32(const char *label, ImU32 *color,
+                   ImGuiColorEditFlags flags = 0)
+{
+    float col[4];
+    col[0] = (float)((*color >> 0) & 0xFF) / 255.0f;
+    col[1] = (float)((*color >> 8) & 0xFF) / 255.0f;
+    col[2] = (float)((*color >> 16) & 0xFF) / 255.0f;
+    col[3] = (float)((*color >> 24) & 0xFF) / 255.0f;
+
+    bool result = ColorEdit4(label, col, flags);
+
+    *color = ((ImU32)(col[0] * 255.0f)) | ((ImU32)(col[1] * 255.0f) << 8) |
+             ((ImU32)(col[2] * 255.0f) << 16) |
+             ((ImU32)(col[3] * 255.0f) << 24);
+
+    return result;
+}
+} // namespace ImGui
+
 void AddonOptions()
 {
     ImGui::Text("Keyboard Overlay");
@@ -541,6 +559,15 @@ void AddonOptions()
         Settings::m_json_settings[KEY_SIZE] = SettingsVars::KeySize;
         Settings::Save(SettingsPath);
     }
+    if (ImGui::ColorEdit4U32("##KeyColor", &SettingsVars::KeyPressedColor,
+                             ImGuiColorEditFlags_NoInputs |
+                                 ImGuiColorEditFlags_NoLabel)) {
+        Settings::m_json_settings[PRESSED_KEY_COLOR] =
+            SettingsVars::KeyPressedColor;
+        Settings::Save(SettingsPath);
+    }
+    ImGui::SameLine();
+    ImGui::Text("Pressed keys color");
     int key_to_delete = -1;
     if (ImGui::BeginTable("Keys##keys_table", 5)) {
         for (auto &key : keys) {

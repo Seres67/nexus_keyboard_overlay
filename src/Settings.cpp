@@ -1,8 +1,6 @@
-#include <Settings.h>
-
+#include "Settings.h"
 #include "Shared.h"
 #include "utils.h"
-
 #include <filesystem>
 #include <fstream>
 
@@ -13,6 +11,7 @@ const char *KEY_SIZE = "KeySize";
 const char *WINDOW_SCALE = "WindowScale";
 const char *ALWAYS_DISPLAYED = "AlwaysDisplayed";
 const char *DISABLE_IN_CHAT = "DisableInChat";
+const char *PRESSED_KEY_COLOR = "PressedKeyColor";
 
 json Settings::m_json_settings;
 std::mutex Settings::m_mutex;
@@ -55,6 +54,14 @@ void Settings::Load(const std::filesystem::path &aPath)
         m_json_settings[ALWAYS_DISPLAYED].get_to(SettingsVars::AlwaysDisplayed);
     if (!m_json_settings[DISABLE_IN_CHAT].is_null())
         m_json_settings[DISABLE_IN_CHAT].get_to(SettingsVars::DisableInChat);
+    if (!m_json_settings[PRESSED_KEY_COLOR].is_null())
+        m_json_settings[PRESSED_KEY_COLOR].get_to(
+            SettingsVars::KeyPressedColor);
+    else {
+        m_json_settings[PRESSED_KEY_COLOR] = 0xCCD99CB0; // 0xCCD99CB0
+        m_json_settings[PRESSED_KEY_COLOR].get_to(
+            SettingsVars::KeyPressedColor);
+    }
 }
 
 void Settings::Save(const std::filesystem::path &aPath)
@@ -82,4 +89,5 @@ float WindowScale = 0.9f;
 float KeySize = 72;
 bool AlwaysDisplayed = false;
 bool DisableInChat = true;
+ImU32 KeyPressedColor;
 } // namespace SettingsVars

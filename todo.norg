@@ -10,7 +10,7 @@ version: 1.1.1
 
 * Todo
 - Cleanup code
-- Changeable opacity
-- Changeable colors
+- Changeable opacity (is it still useful?)
+- per key color?
 - Mouse movement
 - grid/snapping
