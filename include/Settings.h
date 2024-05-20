@@ -33,6 +33,7 @@ extern bool ShowKeyTimers;
 extern float WindowScale;
 extern float KeySize;
 extern bool AlwaysDisplayed;
+extern bool DisableInChat;
 } // namespace SettingsVars
 
 #endif // !NEXUS_KEYBOARD_OVERLAY_SETTINGS_H

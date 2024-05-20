@@ -12,6 +12,7 @@ const char *SHOW_KEY_TIMERS = "ShowKeyTimers";
 const char *KEY_SIZE = "KeySize";
 const char *WINDOW_SCALE = "WindowScale";
 const char *ALWAYS_DISPLAYED = "AlwaysDisplayed";
+const char *DISABLE_IN_CHAT = "DisableInChat";
 
 json Settings::m_json_settings;
 std::mutex Settings::m_mutex;
@@ -52,6 +53,8 @@ void Settings::Load(const std::filesystem::path &aPath)
         m_json_settings[KEY_SIZE].get_to(SettingsVars::KeySize);
     if (!m_json_settings[ALWAYS_DISPLAYED].is_null())
         m_json_settings[ALWAYS_DISPLAYED].get_to(SettingsVars::AlwaysDisplayed);
+    if (!m_json_settings[DISABLE_IN_CHAT].is_null())
+        m_json_settings[DISABLE_IN_CHAT].get_to(SettingsVars::DisableInChat);
 }
 
 void Settings::Save(const std::filesystem::path &aPath)
@@ -78,4 +81,5 @@ bool ShowKeyTimers = true;
 float WindowScale = 0.9f;
 float KeySize = 72;
 bool AlwaysDisplayed = false;
+bool DisableInChat = true;
 } // namespace SettingsVars

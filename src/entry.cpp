@@ -393,30 +393,63 @@ void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
 void displayKey(std::pair<const unsigned int, Key> &key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+    int style_cout = 0;
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           ImVec4(0.8f, 0.8f, 0.8f, 1.f));
+    ++style_cout;
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 1.f));
+    ++style_cout;
+
     ImGui::SetCursorPos(key.second.getPos());
     if (key.second.isKeyPressed()) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
-        ImGui::PushStyleColor(ImGuiCol_Button,
-                              ImVec4(0.694f, 0.612f, 0.851f, 0.8f));
+        if (!SettingsVars::DisableInChat ||
+            !MumbleLink->Context.IsTextboxFocused) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
+            ImGui::PushStyleColor(ImGuiCol_Button,
+                                  ImVec4(0.694f, 0.612f, 0.851f, 0.8f));
+            ++style_cout;
+            ++style_cout;
+        } else {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
+            if (SettingsVars::IsBackgroundTransparent) {
+                ImGui::PushStyleColor(
+                    ImGuiCol_Button,
+                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+                ++style_cout;
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Button,
+                                      ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+                ++style_cout;
+            }
+        }
     } else {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
-        ImGui::PushStyleColor(ImGuiCol_Button,
-                              ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+        ++style_cout;
+        if (SettingsVars::IsBackgroundTransparent) {
+            ImGui::PushStyleColor(ImGuiCol_Button,
+                                  ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+            ++style_cout;
+        } else {
+            ImGui::PushStyleColor(ImGuiCol_Button,
+                                  ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+            ++style_cout;
+        }
     }
     ImGui::Button(key.second.getDisplayName().c_str(), key.second.getSize());
     ImGui::PopStyleColor();
+    --style_cout;
     if (ImGui::IsItemActive()) {
         draggingButton = key.first;
         initial_button_pos = key.second.getPos();
     }
     if (SettingsVars::ShowKeyTimers) {
-        ImVec2 timerPos = key.second.getPos();
-        showTimers(key, timerPos);
+        if (!SettingsVars::DisableInChat ||
+            !MumbleLink->Context.IsTextboxFocused) {
+            ImVec2 timerPos = key.second.getPos();
+            showTimers(key, timerPos);
+        }
     }
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(style_cout);
     ImGui::PopStyleVar();
 }
 
@@ -443,7 +476,17 @@ void AddonRender()
             ImGui::PushFont(NexusLink->Font);
             if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
                 ImGui::SetWindowFontScale(SettingsVars::WindowScale);
-                for (auto &key : keys)
+                auto pressed_keys =
+                    keys |
+                    std::views::filter([&](const auto &pair)
+                                       { return pair.second.isKeyPressed(); });
+                auto unpressed_keys =
+                    keys |
+                    std::views::filter([&](const auto &pair)
+                                       { return !pair.second.isKeyPressed(); });
+                for (auto &key : unpressed_keys)
+                    displayKey(key);
+                for (auto &key : pressed_keys)
                     displayKey(key);
             }
             ImGui::PopFont();
@@ -472,6 +515,12 @@ void AddonOptions()
     }
     if (ImGui::Checkbox("Transparent Background##background",
                         &SettingsVars::IsBackgroundTransparent)) {
+        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] =
+            SettingsVars::IsBackgroundTransparent;
+        Settings::Save(SettingsPath);
+    }
+    if (ImGui::Checkbox("Disable while typing in chat##background",
+                        &SettingsVars::DisableInChat)) {
         Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] =
             SettingsVars::IsBackgroundTransparent;
         Settings::Save(SettingsPath);
