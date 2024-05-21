@@ -64,7 +64,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 4;
-    AddonDef.Version.Revision = 2;
+    AddonDef.Version.Revision = 3;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -381,11 +381,15 @@ void AddonUnload()
 
 void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
 {
-    timerPos.y += 55;
     // 7 = average pixel size of a char
     // 3 = " ms" char count
     // 4 = average number of other chars
-    timerPos.x += (key.second.getSize().x - (7 * (3 + 4))) / 2;
+    char text[19];
+    sprintf(text, "%lld ms", key.second.getPressedDuration());
+    auto text_size = ImGui::CalcTextSize(text);
+    timerPos.x += (key.second.getSize().x - text_size.x) / 2;
+    timerPos.y += key.second.getSize().y - text_size.y;
+
     ImGui::SetCursorPos(timerPos);
     ImGui::Text("%lld ms", key.second.getPressedDuration());
 }
