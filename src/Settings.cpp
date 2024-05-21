@@ -57,11 +57,6 @@ void Settings::Load(const std::filesystem::path &aPath)
     if (!m_json_settings[PRESSED_KEY_COLOR].is_null())
         m_json_settings[PRESSED_KEY_COLOR].get_to(
             SettingsVars::KeyPressedColor);
-    else {
-        m_json_settings[PRESSED_KEY_COLOR] = 0xCCD99CB0; // 0xCCD99CB0
-        m_json_settings[PRESSED_KEY_COLOR].get_to(
-            SettingsVars::KeyPressedColor);
-    }
 }
 
 void Settings::Save(const std::filesystem::path &aPath)
@@ -89,5 +84,5 @@ float WindowScale = 0.9f;
 float KeySize = 72;
 bool AlwaysDisplayed = false;
 bool DisableInChat = true;
-ImU32 KeyPressedColor;
+ImU32 KeyPressedColor = 0xCCD99CB0;
 } // namespace SettingsVars

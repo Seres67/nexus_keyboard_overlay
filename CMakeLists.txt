@@ -33,3 +33,4 @@ add_subdirectory(src/imgui)
 
 add_library(nexus_keyboard_overlay SHARED src/Settings.cpp src/Shared.cpp src/entry.cpp src/utils.cpp)
 target_link_libraries(nexus_keyboard_overlay imgui)
+#set_target_properties(nexus_keyboard_overlay PROPERTIES COMPILE_FLAGS "/EHsc")

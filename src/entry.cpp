@@ -64,7 +64,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 4;
-    AddonDef.Version.Revision = 1;
+    AddonDef.Version.Revision = 2;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -554,7 +554,7 @@ void AddonOptions()
         Settings::m_json_settings[WINDOW_SCALE] = SettingsVars::WindowScale;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::SliderFloat("KeySize##KeySize", &SettingsVars::KeySize, 1,
+    if (ImGui::SliderFloat("Default key size##KeySize", &SettingsVars::KeySize, 1,
                            200)) {
         Settings::m_json_settings[KEY_SIZE] = SettingsVars::KeySize;
         Settings::Save(SettingsPath);
