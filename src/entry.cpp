@@ -1,5 +1,4 @@
 #include <cstring>
-#include <ctime>
 #include <filesystem>
 #include <map>
 #include <string>
@@ -64,7 +63,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 4;
-    AddonDef.Version.Revision = 3;
+    AddonDef.Version.Revision = 4;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -173,6 +172,7 @@ void setKeybinding(WPARAM key)
     keys[key].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
+    Settings::Save(SettingsPath);
 }
 
 void addKeybinding(WPARAM key)
@@ -188,6 +188,7 @@ void addKeybinding(WPARAM key)
     keys[key].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[key].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
+    Settings::Save(SettingsPath);
 }
 
 void setMouseKeybinding(WPARAM wParam)
@@ -220,6 +221,7 @@ void setMouseKeybinding(WPARAM wParam)
     keys[c].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
+    Settings::Save(SettingsPath);
 }
 
 void addMouseButton(WPARAM wParam)
@@ -251,6 +253,7 @@ void addMouseButton(WPARAM wParam)
     keys[c].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[c].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
+    Settings::Save(SettingsPath);
 }
 
 unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
@@ -473,7 +476,8 @@ void AddonRender()
     }
     ImGui::SetNextWindowSizeConstraints({40, 40}, {FLT_MAX, FLT_MAX});
     if (SettingsVars::IsKeyboardOverlayEnabled) {
-        if (SettingsVars::AlwaysDisplayed || NexusLink->IsGameplay) {
+        if (SettingsVars::AlwaysDisplayed ||
+            (NexusLink->IsGameplay && !MumbleLink->Context.IsMapOpen)) {
             ImGui::PushFont(NexusLink->Font);
             if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
                 ImGui::SetWindowFontScale(SettingsVars::WindowScale);
@@ -496,7 +500,11 @@ void AddonRender()
     }
 }
 
-void deleteKey(unsigned int code) { keys.erase(code); }
+void deleteKey(unsigned int code)
+{
+    keys.erase(code);
+    Settings::Save(SettingsPath);
+}
 
 namespace ImGui
 {
