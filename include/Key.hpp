@@ -11,15 +11,12 @@
 class Key
 {
   public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Key, m_binding_name, m_key_name, m_code,
-                                   m_pos.x, m_pos.y, m_size.x, m_size.y)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Key, m_binding_name, m_key_name, m_code, m_pos.x, m_pos.y, m_size.x, m_size.y)
 
     Key() = default;
 
-    Key(std::string binding_name, std::string key_name, unsigned int code,
-        ImVec2 pos, ImVec2 size)
-        : m_binding_name(std::move(binding_name)),
-          m_key_name(std::move(key_name)), m_code(code), m_pos(pos),
+    Key(std::string binding_name, std::string key_name, unsigned int code, ImVec2 pos, ImVec2 size)
+        : m_binding_name(std::move(binding_name)), m_key_name(std::move(key_name)), m_code(code), m_pos(pos),
           m_size(size)
     {
     }
@@ -29,10 +26,7 @@ class Key
     [[nodiscard]] unsigned int getKeyCode() const { return m_code; }
     void setKeyCode(unsigned int code) { m_code = code; }
 
-    [[nodiscard]] const std::string &getDisplayName() const
-    {
-        return m_binding_name;
-    }
+    [[nodiscard]] const std::string &getDisplayName() const { return m_binding_name; }
     void setDisplayName(const std::string &name) { m_binding_name = name; }
 
     [[nodiscard]] const std::string &getKeyName() const { return m_key_name; }
@@ -59,13 +53,11 @@ class Key
     long long int getPressedDuration()
     {
         if (m_pressed) {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(
-                       std::chrono::steady_clock::now() - m_start_pressing)
+            return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() -
+                                                                         m_start_pressing)
                 .count();
         } else {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(
-                       m_end_pressing - m_start_pressing)
-                .count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(m_end_pressing - m_start_pressing).count();
         }
     }
 

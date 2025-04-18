@@ -39,8 +39,7 @@ ImVec2 offset{-1, -1};
 
 std::map<unsigned int, Key> keys;
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
-                      LPVOID lpReserved)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
@@ -63,7 +62,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     AddonDef.Version.Major = 0;
     AddonDef.Version.Minor = 8;
     AddonDef.Version.Build = 4;
-    AddonDef.Version.Revision = 4;
+    AddonDef.Version.Revision = 5;
     AddonDef.Author = "Seres67";
     AddonDef.Description = "Adds a modular keyboard overlay to the UI.";
     AddonDef.Load = AddonLoad;
@@ -80,8 +79,8 @@ void KeyDown(WPARAM i_key, LPARAM lParam)
     // NUMPAD, arrow keys, right alt, right ctrl, ins, del, home, end, page
     // up, page down, num lock, (ctrl + pause), print screen, divide
     // (numpad), enter (numpad)
-    if (lParam >> 24 == 1)
-        Log::debug("special key");
+    /*if (lParam >> 24 == 1)*/
+    /*    Log::debug("special key");*/
     for (auto &&key : keys)
         if (!key.second.isKeyPressed() && i_key == key.first)
             key.second.keyDown();
@@ -172,6 +171,8 @@ void setKeybinding(WPARAM key)
     keys[key].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
+    json settings_json = keys;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
@@ -188,6 +189,8 @@ void addKeybinding(WPARAM key)
     keys[key].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[key].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
+    json settings_json = keys;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
@@ -221,6 +224,8 @@ void setMouseKeybinding(WPARAM wParam)
     keys[c].reset();
     keys.erase(keybindingToChange);
     keybindingToChange = UINT_MAX;
+    json settings_json = keys;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
@@ -253,6 +258,8 @@ void addMouseButton(WPARAM wParam)
     keys[c].setSize({SettingsVars::KeySize, SettingsVars::KeySize});
     keys[c].reset();
     memset(newKeybindingName, 0, sizeof(newKeybindingName));
+    json settings_json = keys;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
@@ -266,8 +273,7 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
     if (addingKeybinding) {
         if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
             addKeybinding(wParam);
-        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
-                 uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
+        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN || uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
             addMouseButton(wParam);
     } else if (keybindingToChange == UINT_MAX) {
         switch (uMsg) {
@@ -313,8 +319,7 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
     } else {
         if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
             setKeybinding(wParam);
-        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN ||
-                 uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
+        else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_LBUTTONDOWN || uMsg == WM_RBUTTONDOWN || uMsg == WM_MBUTTONDOWN)
             setMouseKeybinding(wParam);
     }
     if (draggingButton != UINT_MAX) {
@@ -322,10 +327,8 @@ unsigned int WndProc(HWND hWnd, unsigned int uMsg, WPARAM wParam, LPARAM lParam)
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
             if (offset.x == -1)
-                offset = {static_cast<float>(x) - initial_button_pos.x,
-                          static_cast<float>(y) - initial_button_pos.y};
-            keys[draggingButton].setPos({static_cast<float>(x) - offset.x,
-                                         static_cast<float>(y) - offset.y});
+                offset = {static_cast<float>(x) - initial_button_pos.x, static_cast<float>(y) - initial_button_pos.y};
+            keys[draggingButton].setPos({static_cast<float>(x) - offset.x, static_cast<float>(y) - offset.y});
         } else if (uMsg == WM_LBUTTONUP) {
             draggingButton = UINT_MAX;
             offset = {-1, -1};
@@ -338,9 +341,8 @@ void AddonLoad(AddonAPI *aApi)
 {
     APIDefs = aApi;
     ImGui::SetCurrentContext(APIDefs->ImguiContext);
-    ImGui::SetAllocatorFunctions(
-        (void *(*)(size_t, void *))APIDefs->ImguiMalloc,
-        (void (*)(void *, void *))APIDefs->ImguiFree); // on imgui 1.80+
+    ImGui::SetAllocatorFunctions((void *(*)(size_t, void *))APIDefs->ImguiMalloc,
+                                 (void (*)(void *, void *))APIDefs->ImguiFree); // on imgui 1.80+
 
     MumbleLink = (Mumble::Data *)APIDefs->GetResource("DL_MUMBLE_LINK");
     NexusLink = (NexusLinkData *)APIDefs->GetResource("DL_NEXUS_LINK");
@@ -376,10 +378,6 @@ void AddonUnload()
 
     MumbleLink = nullptr;
     NexusLink = nullptr;
-
-    json settings_json = keys;
-    Settings::m_json_settings["AllKeybindings"] = settings_json;
-    Settings::Save(SettingsPath);
 }
 
 void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
@@ -400,29 +398,23 @@ void showTimers(std::pair<unsigned int, Key> key, ImVec2 &timerPos)
 void displayKey(std::pair<const unsigned int, Key> &key)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.8f, 0.8f, 0.8f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.8f, 0.8f, 1.f));
     int style_cout = 2;
     ImGui::SetCursorPos(key.second.getPos());
     if (key.second.isKeyPressed()) {
-        if (!SettingsVars::DisableInChat ||
-            !MumbleLink->Context.IsTextboxFocused) {
+        if (!SettingsVars::DisableInChat || !MumbleLink->Context.IsTextboxFocused) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 0.8f));
-            ImGui::PushStyleColor(ImGuiCol_Button,
-                                  SettingsVars::KeyPressedColor);
+            ImGui::PushStyleColor(ImGuiCol_Button, SettingsVars::KeyPressedColor);
             style_cout += 2;
         } else {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
             ++style_cout;
             if (SettingsVars::IsBackgroundTransparent) {
-                ImGui::PushStyleColor(
-                    ImGuiCol_Button,
-                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
                 ++style_cout;
             } else {
-                ImGui::PushStyleColor(ImGuiCol_Button,
-                                      ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
                 ++style_cout;
             }
         }
@@ -430,12 +422,10 @@ void displayKey(std::pair<const unsigned int, Key> &key)
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.8f));
         ++style_cout;
         if (SettingsVars::IsBackgroundTransparent) {
-            ImGui::PushStyleColor(ImGuiCol_Button,
-                                  ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
             ++style_cout;
         } else {
-            ImGui::PushStyleColor(ImGuiCol_Button,
-                                  ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.298f, 0.298f, 0.298f, 0.8f));
             ++style_cout;
         }
     }
@@ -447,8 +437,7 @@ void displayKey(std::pair<const unsigned int, Key> &key)
         initial_button_pos = key.second.getPos();
     }
     if (SettingsVars::ShowKeyTimers) {
-        if (!SettingsVars::DisableInChat ||
-            !MumbleLink->Context.IsTextboxFocused) {
+        if (!SettingsVars::DisableInChat || !MumbleLink->Context.IsTextboxFocused) {
             ImVec2 timerPos = key.second.getPos();
             showTimers(key, timerPos);
         }
@@ -457,18 +446,13 @@ void displayKey(std::pair<const unsigned int, Key> &key)
     ImGui::PopStyleVar();
 }
 
-ImGuiWindowFlags windowFlags =
-    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing |
-    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
+ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing |
+                               ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
 void AddonRender()
 {
-    if (SettingsVars::IsBackgroundTransparent &&
-        (windowFlags & ImGuiWindowFlags_NoBackground) == 0)
-        windowFlags |= ImGuiWindowFlags_NoBackground |
-                       ImGuiWindowFlags_NoDecoration |
-                       ImGuiWindowFlags_NoInputs;
-    else if (!SettingsVars::IsBackgroundTransparent &&
-             (windowFlags & ImGuiWindowFlags_NoBackground) != 0) {
+    if (SettingsVars::IsBackgroundTransparent && (windowFlags & ImGuiWindowFlags_NoBackground) == 0)
+        windowFlags |= ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
+    else if (!SettingsVars::IsBackgroundTransparent && (windowFlags & ImGuiWindowFlags_NoBackground) != 0) {
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoBackground;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoDecoration;
         windowFlags = windowFlags & ~ImGuiWindowFlags_NoInputs;
@@ -476,19 +460,14 @@ void AddonRender()
     }
     ImGui::SetNextWindowSizeConstraints({40, 40}, {FLT_MAX, FLT_MAX});
     if (SettingsVars::IsKeyboardOverlayEnabled) {
-        if (SettingsVars::AlwaysDisplayed ||
-            (NexusLink->IsGameplay && !MumbleLink->Context.IsMapOpen)) {
+        if (SettingsVars::AlwaysDisplayed || (NexusLink->IsGameplay && !MumbleLink->Context.IsMapOpen)) {
             ImGui::PushFont(NexusLink->Font);
             if (ImGui::Begin("KEYBOARD_OVERLAY", nullptr, windowFlags)) {
                 ImGui::SetWindowFontScale(SettingsVars::WindowScale);
                 auto pressed_keys =
-                    keys |
-                    std::views::filter([&](const auto &pair)
-                                       { return pair.second.isKeyPressed(); });
+                    keys | std::views::filter([&](const auto &pair) { return pair.second.isKeyPressed(); });
                 auto unpressed_keys =
-                    keys |
-                    std::views::filter([&](const auto &pair)
-                                       { return !pair.second.isKeyPressed(); });
+                    keys | std::views::filter([&](const auto &pair) { return !pair.second.isKeyPressed(); });
                 for (auto &key : unpressed_keys)
                     displayKey(key);
                 for (auto &key : pressed_keys)
@@ -503,13 +482,14 @@ void AddonRender()
 void deleteKey(unsigned int code)
 {
     keys.erase(code);
+    json settings_json = keys;
+    Settings::m_json_settings["AllKeybindings"] = settings_json;
     Settings::Save(SettingsPath);
 }
 
 namespace ImGui
 {
-bool ColorEdit4U32(const char *label, ImU32 *color,
-                   ImGuiColorEditFlags flags = 0)
+bool ColorEdit4U32(const char *label, ImU32 *color, ImGuiColorEditFlags flags = 0)
 {
     float col[4];
     col[0] = (float)((*color >> 0) & 0xFF) / 255.0f;
@@ -519,8 +499,7 @@ bool ColorEdit4U32(const char *label, ImU32 *color,
 
     bool result = ColorEdit4(label, col, flags);
 
-    *color = ((ImU32)(col[0] * 255.0f)) | ((ImU32)(col[1] * 255.0f) << 8) |
-             ((ImU32)(col[2] * 255.0f) << 16) |
+    *color = ((ImU32)(col[0] * 255.0f)) | ((ImU32)(col[1] * 255.0f) << 8) | ((ImU32)(col[2] * 255.0f) << 16) |
              ((ImU32)(col[3] * 255.0f) << 24);
 
     return result;
@@ -531,51 +510,37 @@ void AddonOptions()
 {
     ImGui::Text("Keyboard Overlay");
     ImGui::TextDisabled("Widget");
-    if (ImGui::Checkbox("Enabled##Widget",
-                        &SettingsVars::IsKeyboardOverlayEnabled)) {
-        Settings::m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED] =
-            SettingsVars::IsKeyboardOverlayEnabled;
+    if (ImGui::Checkbox("Enabled##Widget", &SettingsVars::IsKeyboardOverlayEnabled)) {
+        Settings::m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED] = SettingsVars::IsKeyboardOverlayEnabled;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::Checkbox("Always Displayed##always",
-                        &SettingsVars::AlwaysDisplayed)) {
-        Settings::m_json_settings[ALWAYS_DISPLAYED] =
-            SettingsVars::AlwaysDisplayed;
+    if (ImGui::Checkbox("Always Displayed##always", &SettingsVars::AlwaysDisplayed)) {
+        Settings::m_json_settings[ALWAYS_DISPLAYED] = SettingsVars::AlwaysDisplayed;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::Checkbox("Transparent Background##background",
-                        &SettingsVars::IsBackgroundTransparent)) {
-        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] =
-            SettingsVars::IsBackgroundTransparent;
+    if (ImGui::Checkbox("Transparent Background##background", &SettingsVars::IsBackgroundTransparent)) {
+        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] = SettingsVars::IsBackgroundTransparent;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::Checkbox("Disable while typing in chat##background",
-                        &SettingsVars::DisableInChat)) {
-        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] =
-            SettingsVars::IsBackgroundTransparent;
+    if (ImGui::Checkbox("Disable while typing in chat##background", &SettingsVars::DisableInChat)) {
+        Settings::m_json_settings[IS_BACKGROUND_TRANSPARENT] = SettingsVars::IsBackgroundTransparent;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::Checkbox("Show Key Timers##KeyTimers",
-                        &SettingsVars::ShowKeyTimers)) {
-        Settings::m_json_settings[SHOW_KEY_TIMERS] =
-            SettingsVars::ShowKeyTimers;
+    if (ImGui::Checkbox("Show Key Timers##KeyTimers", &SettingsVars::ShowKeyTimers)) {
+        Settings::m_json_settings[SHOW_KEY_TIMERS] = SettingsVars::ShowKeyTimers;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::SliderFloat("Window Scale##Scale", &SettingsVars::WindowScale,
-                           0.1, 3.0)) {
+    if (ImGui::SliderFloat("Window Scale##Scale", &SettingsVars::WindowScale, 0.1, 3.0)) {
         Settings::m_json_settings[WINDOW_SCALE] = SettingsVars::WindowScale;
         Settings::Save(SettingsPath);
     }
-    if (ImGui::SliderFloat("Default key size##KeySize", &SettingsVars::KeySize, 1,
-                           200)) {
+    if (ImGui::SliderFloat("Default key size##KeySize", &SettingsVars::KeySize, 1, 200)) {
         Settings::m_json_settings[KEY_SIZE] = SettingsVars::KeySize;
         Settings::Save(SettingsPath);
     }
     if (ImGui::ColorEdit4U32("##KeyColor", &SettingsVars::KeyPressedColor,
-                             ImGuiColorEditFlags_NoInputs |
-                                 ImGuiColorEditFlags_NoLabel)) {
-        Settings::m_json_settings[PRESSED_KEY_COLOR] =
-            SettingsVars::KeyPressedColor;
+                             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+        Settings::m_json_settings[PRESSED_KEY_COLOR] = SettingsVars::KeyPressedColor;
         Settings::Save(SettingsPath);
     }
     ImGui::SameLine();

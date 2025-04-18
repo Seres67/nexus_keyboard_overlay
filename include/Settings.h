@@ -1,9 +1,9 @@
 #ifndef NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
 #define NEXUS_KEYBOARD_OVERLAY_SETTINGS_H
 
-#include <mutex>
 #include "imgui/imgui.h"
 #include "nlohmann/json.hpp"
+#include <mutex>
 
 using json = nlohmann::json;
 

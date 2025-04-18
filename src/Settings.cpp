@@ -32,18 +32,14 @@ void Settings::Load(const std::filesystem::path &aPath)
                 file.close();
             }
         } catch (json::parse_error &ex) {
-            APIDefs->Log(
-                ELogLevel_WARNING,
-                "Keyboard Overlay: Settings.json could not be parsed.");
+            APIDefs->Log(ELogLevel_WARNING, "Keyboard Overlay: Settings.json could not be parsed.");
             APIDefs->Log(ELogLevel_WARNING, ex.what());
         }
     }
     if (!m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED].is_null())
-        m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED].get_to(
-            SettingsVars::IsKeyboardOverlayEnabled);
+        m_json_settings[IS_KEYBOARD_OVERLAY_ENABLED].get_to(SettingsVars::IsKeyboardOverlayEnabled);
     if (!m_json_settings[IS_BACKGROUND_TRANSPARENT].is_null())
-        m_json_settings[IS_BACKGROUND_TRANSPARENT].get_to(
-            SettingsVars::IsBackgroundTransparent);
+        m_json_settings[IS_BACKGROUND_TRANSPARENT].get_to(SettingsVars::IsBackgroundTransparent);
     if (!m_json_settings[SHOW_KEY_TIMERS].is_null())
         m_json_settings[SHOW_KEY_TIMERS].get_to(SettingsVars::ShowKeyTimers);
     if (!m_json_settings[WINDOW_SCALE].is_null())
@@ -55,8 +51,7 @@ void Settings::Load(const std::filesystem::path &aPath)
     if (!m_json_settings[DISABLE_IN_CHAT].is_null())
         m_json_settings[DISABLE_IN_CHAT].get_to(SettingsVars::DisableInChat);
     if (!m_json_settings[PRESSED_KEY_COLOR].is_null())
-        m_json_settings[PRESSED_KEY_COLOR].get_to(
-            SettingsVars::KeyPressedColor);
+        m_json_settings[PRESSED_KEY_COLOR].get_to(SettingsVars::KeyPressedColor);
 }
 
 void Settings::Save(const std::filesystem::path &aPath)
