@@ -8,30 +8,12 @@ stdenv.mkDerivation {
   src = ./.;
 
   nativeBuildInputs = [
-    buildPackages.stdenv.cc
     buildPackages.cmake
+    stdenv.cc
   ];
 
-  # buildInputs = [
-  #   stdenv.cc
-  #   pkgs.curl
-  #   pkgs.nlohmann_json
-  # ];
-
-  # patchPhase = ''
-  #   mkdir -p ./modules/
-  #   cp --no-preserve=mode -r ${imgui} ./modules/imgui
-  #   cp --no-preserve=mode -r ${nexus} ./modules/nexus
-  #   cp --no-preserve=mode -r ${mumble} ./modules/mumble
-  # '';
-
-  # installPhase = ''
-  #   mkdir -p $out/lib
-  #   cp ./*.dll $out/lib
-  # '';
-
-  # postBuild = ''
-  #   mkdir -p $out/share
-  #   cp ./compile_commands.json $out/share/
-  # '';
+  cmakeFlags = [
+    "-DCMAKE_C_COMPILER=${stdenv.cc}/bin/${stdenv.cc.targetPrefix}cc"
+    "-DCMAKE_CXX_COMPILER=${stdenv.cc}/bin/${stdenv.cc.targetPrefix}c++"
+  ];
 }
