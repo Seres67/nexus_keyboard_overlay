@@ -5,18 +5,6 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
-    imgui = {
-      url = "github:RaidcoreGG/imgui/master";
-      flake = false;
-    };
-    mumble = {
-      url = "github:RaidcoreGG/RCGG-lib-mumble-api/main";
-      flake = false;
-    };
-    nexus = {
-      url = "github:RaidcoreGG/RCGG-lib-nexus-api/main";
-      flake = false;
-    };
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
@@ -27,7 +15,7 @@
     flake-utils,
     nixpkgs,
     ...
-  } @ inputs:
+  }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
         inherit system;
