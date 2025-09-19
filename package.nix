@@ -1,5 +1,5 @@
 {
-  buildPackages,
+  cmake,
   stdenv,
 }:
 stdenv.mkDerivation {
@@ -8,12 +8,11 @@ stdenv.mkDerivation {
   src = ./.;
 
   nativeBuildInputs = [
-    buildPackages.cmake
-    stdenv.cc
+    cmake
   ];
 
-  cmakeFlags = [
-    "-DCMAKE_C_COMPILER=${stdenv.cc}/bin/${stdenv.cc.targetPrefix}cc"
-    "-DCMAKE_CXX_COMPILER=${stdenv.cc}/bin/${stdenv.cc.targetPrefix}c++"
-  ];
+  installPhase = ''
+    mkdir -p $out/lib
+    cp ./*.dll $out/lib
+  '';
 }
