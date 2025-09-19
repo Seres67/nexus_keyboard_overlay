@@ -55,8 +55,8 @@ void addon_load(AddonAPI *api_p)
     api = api_p;
 
     ImGui::SetCurrentContext(static_cast<ImGuiContext *>(api->ImguiContext));
-    ImGui::SetAllocatorFunctions(static_cast<void *(*)(size_t, void *)>(api->ImguiMalloc),
-                                 static_cast<void (*)(void *, void *)>(api->ImguiFree)); // on imgui 1.80+
+    ImGui::SetAllocatorFunctions(reinterpret_cast<void *(*)(size_t, void *)>(api->ImguiMalloc),
+                                 reinterpret_cast<void (*)(void *, void *)>(api->ImguiFree)); // on imgui 1.80+
 
     mumble_link = static_cast<Mumble::Data *>(api->DataLink.Get("DL_MUMBLE_LINK"));
     nexus_link = static_cast<NexusLinkData *>(api->DataLink.Get("DL_NEXUS_LINK"));

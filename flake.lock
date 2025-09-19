@@ -1,0 +1,132 @@
+{
+  "nodes": {
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1747046372,
+        "narHash": "sha256-CIVLLkVgvHYbgI2UpXvIIBJ12HWgX+fjA8Xf8PUmqCY=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "9100a0f413b0c601e0533d1d94ffd501ce2e7885",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "imgui": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1611257778,
+        "narHash": "sha256-3xkGUsgfDoPUQPVinSqZ8z0WTlppc0jxn7xGxK/5y4M=",
+        "owner": "RaidcoreGG",
+        "repo": "imgui",
+        "rev": "58075c4414b985b352d10718b02a8c43f25efd7c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RaidcoreGG",
+        "ref": "master",
+        "repo": "imgui",
+        "type": "github"
+      }
+    },
+    "mumble": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1717693598,
+        "narHash": "sha256-O8kyXlK+sCD6PQlk/1MtNdv+aEcV+ma7hN2+U6NBFV8=",
+        "owner": "RaidcoreGG",
+        "repo": "RCGG-lib-mumble-api",
+        "rev": "8c93788c3042dd6b401c0a93d17e34e1d4414e9a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RaidcoreGG",
+        "ref": "main",
+        "repo": "RCGG-lib-mumble-api",
+        "type": "github"
+      }
+    },
+    "nexus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1754555066,
+        "narHash": "sha256-AzzJi/2eQPpKzxx0P4B9Q47nXTKgNo0hgyip2T/bkxI=",
+        "owner": "RaidcoreGG",
+        "repo": "RCGG-lib-nexus-api",
+        "rev": "9b2c53df86c00db6495642bfcff2d0611bd957ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RaidcoreGG",
+        "ref": "main",
+        "repo": "RCGG-lib-nexus-api",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1758213207,
+        "narHash": "sha256-rqoqF0LEi+6ZT59tr+hTQlxVwrzQsET01U4uUdmqRtM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f4b140d5b253f5e2a1ff4e5506edbf8267724bde",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "flake-utils": "flake-utils",
+        "imgui": "imgui",
+        "mumble": "mumble",
+        "nexus": "nexus",
+        "nixpkgs": "nixpkgs"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
