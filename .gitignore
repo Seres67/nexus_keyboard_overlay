@@ -1,6 +1,4 @@
-debug/
-release/
+build/
+cmake-*/
 .cache/
-cmake-build-*/
-*.sh
 .idea/
