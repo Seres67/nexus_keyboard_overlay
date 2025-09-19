@@ -1,8 +1,8 @@
-#include "settings.hpp"
-#include "nlohmann/json.hpp"
 #include <filesystem>
 #include <fstream>
 #include <globals.hpp>
+#include <nlohmann/json.hpp>
+#include <settings.hpp>
 
 #include <nexus/Nexus.h>
 
