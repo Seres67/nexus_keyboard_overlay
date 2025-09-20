@@ -1,12 +1,9 @@
 #include <filesystem>
 #include <fstream>
 #include <globals.hpp>
+#include <nexus/Nexus.h>
 #include <nlohmann/json.hpp>
 #include <settings.hpp>
-
-#include <nexus/Nexus.h>
-
-using json = nlohmann::json;
 
 void from_json(const nlohmann::json &j, UIKey &key)
 {
@@ -49,7 +46,7 @@ void from_json(const nlohmann::json &j, UIKey &key)
 void to_json(nlohmann::json &j, const UIKey &key)
 {
 
-    j = json{
+    j = nlohmann::json{
         {"virtual_code", key.virtual_code()},
         {"scan_code", key.scan_code()},
         {"x", key.position()[0]},
@@ -123,9 +120,11 @@ void to_json(nlohmann::json &j, const OldKey &key)
 
 namespace Settings
 {
-json json_settings;
+nlohmann::json json_settings;
+nlohmann::json json_config;
 std::mutex mutex;
 std::filesystem::path settings_path;
+std::filesystem::path config_path;
 
 std::unordered_map<unsigned int, UIKey> keys;
 float background_color[4] = {0.075, 0.086, 0.11, 0.933};
@@ -136,9 +135,10 @@ bool disable_when_map_open = false;
 bool edit_mode = false;
 bool lock_window = false;
 bool show_durations = false;
-void load()
+
+void load_settings()
 {
-    json_settings = json::object();
+    json_settings = nlohmann::json::object();
     if (!std::filesystem::exists(settings_path)) {
         return;
     }
@@ -147,16 +147,14 @@ void load()
         std::lock_guard lock(mutex);
         try {
             if (std::ifstream file(settings_path); file.is_open()) {
-                json_settings = json::parse(file);
+                json_settings = nlohmann::json::parse(file);
                 file.close();
             }
-        } catch (json::parse_error &ex) {
+        } catch (nlohmann::json::parse_error &ex) {
             api->Log(ELogLevel_WARNING, addon_name, "settings.json could not be parsed.");
             api->Log(ELogLevel_WARNING, addon_name, ex.what());
         }
     }
-    if (!json_settings["Keys"].is_null())
-        json_settings["Keys"].get_to(keys);
     if (!json_settings["BackgroundColor"].is_null())
         json_settings["BackgroundColor"].get_to(background_color);
     if (!json_settings["DefaultKeySize"].is_null())
@@ -169,12 +167,12 @@ void load()
         json_settings["DisableWhenMapOpen"].get_to(disable_when_map_open);
     if (!json_settings["LockWindow"].is_null())
         json_settings["LockWindow"].get_to(lock_window);
-    if (!json_settings["ShowDurations"].is_null())
-        json_settings["ShowDurations"].get_to(show_durations);
+    if (!json_settings["ConfigPath"].is_null())
+        json_settings["ConfigPath"].get_to(config_path);
     api->Log(ELogLevel_INFO, addon_name, "settings loaded!");
 }
 
-void save()
+void save_settings()
 {
     if (!std::filesystem::exists(settings_path.parent_path())) {
         std::filesystem::create_directories(settings_path.parent_path());
@@ -188,4 +186,47 @@ void save()
         api->Log(ELogLevel_INFO, addon_name, "settings saved!");
     }
 }
+
+void load_config()
+{
+    json_config = nlohmann::json::object();
+    if (!std::filesystem::exists(config_path)) {
+        return;
+    }
+
+    {
+        std::lock_guard lock(mutex);
+        try {
+            if (std::ifstream file(config_path); file.is_open()) {
+                json_config = nlohmann::json::parse(file);
+                file.close();
+            }
+        } catch (nlohmann::json::parse_error &ex) {
+            api->Log(ELogLevel_WARNING, addon_name, "config could not be parsed.");
+            api->Log(ELogLevel_WARNING, addon_name, ex.what());
+        }
+    }
+    if (!json_config["Keys"].is_null())
+        json_config["Keys"].get_to(keys);
+    if (!json_config["ShowDurations"].is_null())
+        json_config["ShowDurations"].get_to(show_durations);
+
+    api->Log(ELogLevel_INFO, addon_name, "config loaded!");
+}
+
+void save_config()
+{
+    if (!std::filesystem::exists(config_path.parent_path())) {
+        std::filesystem::create_directories(config_path.parent_path());
+    }
+    {
+        std::lock_guard lock(mutex);
+        if (std::ofstream file(config_path); file.is_open()) {
+            file << json_config.dump(1, '\t') << std::endl;
+            file.close();
+        }
+        api->Log(ELogLevel_INFO, addon_name, "config saved!");
+    }
+}
+
 } // namespace Settings

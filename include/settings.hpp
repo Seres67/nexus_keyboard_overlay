@@ -1,11 +1,9 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
+#include <UiKey.hpp>
 #include <mutex>
 #include <nlohmann/json.hpp>
-
-class UIKey;
-class OldKey;
 
 void from_json(const nlohmann::json &j, UIKey &key);
 void to_json(nlohmann::json &j, const UIKey &key);
@@ -14,11 +12,15 @@ void to_json(nlohmann::json &j, const OldKey &key);
 namespace Settings
 {
 
-void load();
-void save();
+void load_settings();
+void save_settings();
+void load_config();
+void save_config();
 
 extern nlohmann::json json_settings;
+extern nlohmann::json json_config;
 extern std::filesystem::path settings_path;
+extern std::filesystem::path config_path;
 extern std::mutex mutex;
 
 extern std::unordered_map<unsigned int, UIKey> keys;

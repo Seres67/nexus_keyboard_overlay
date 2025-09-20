@@ -31,5 +31,6 @@ extern bool recording_keypress;
 extern UINT virtual_key_to_add;
 extern UINT scan_code_to_add;
 
-extern std::unordered_map<std::filesystem::path, nlohmann::json> configs;
+extern std::vector<std::filesystem::path> configs;
+extern int current_config;
 #endif // GLOBALS_HPP

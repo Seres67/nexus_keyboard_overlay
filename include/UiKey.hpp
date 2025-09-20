@@ -4,9 +4,14 @@
 #include <chrono>
 #include <imgui/imgui.h>
 #include <nexus/Nexus.h>
-#include <settings.hpp>
 #include <string>
 #include <utility>
+
+namespace Settings
+{
+extern float default_key_size;
+extern bool show_durations;
+} // namespace Settings
 
 class UIKey
 {

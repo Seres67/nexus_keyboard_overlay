@@ -1,4 +1,5 @@
 #include <UiKey.hpp>
+#include <exception>
 #include <fstream>
 #include <globals.hpp>
 #include <gui.hpp>
@@ -70,22 +71,29 @@ void addon_load(AddonAPI *api_p)
     if (!std::filesystem::exists(textures_directory))
         std::filesystem::create_directory(textures_directory);
     Settings::settings_path = settings_directory / "settings.json";
-    Settings::load();
-
-    const std::filesystem::path default_config = settings_directory / "default.json";
-    if (std::filesystem::exists(default_config)) {
-        // TODO: load default config
+    Settings::load_settings();
+    if (!Settings::config_path.empty())
+        Settings::load_config();
+    else {
+        Settings::config_path = settings_directory / "default.json";
+        Settings::json_settings["ConfigPath"] = Settings::config_path;
+        Settings::save_settings();
+        std::ofstream config(Settings::config_path);
+        config.write("{}", 2);
+        config.close();
+        Settings::save_config();
+        Settings::load_config();
     }
 
+    int i = 0;
     for (auto &file : std::filesystem::directory_iterator(settings_directory)) {
-        if (file.path().filename() == "settings.json" || file.is_directory())
+        if (file.path().extension() != ".json" || file.path().filename() == "settings.json")
             continue;
+        if (file.path() == Settings::config_path)
+            current_config = i;
         nlohmann::json json;
-        if (std::ifstream json_file(file.path()); json_file.is_open()) {
-            json = nlohmann::json::parse(json_file);
-            json_file.close();
-        }
-        configs[file.path()] = json;
+        configs.emplace_back(file.path());
+        ++i;
     }
     if (Settings::json_settings.contains("AllKeybindings") && !Settings::json_settings["AllKeybindings"].is_null()) {
         const auto old_keys = Settings::json_settings["AllKeybindings"].get<std::map<unsigned int, OldKey>>();
@@ -100,8 +108,9 @@ void addon_load(AddonAPI *api_p)
             Settings::keys[vk].set_size(size);
         }
         Settings::json_settings.erase("AllKeybindings");
-        Settings::json_settings["Keys"] = Settings::keys;
-        Settings::save();
+        Settings::json_config["Keys"] = Settings::keys;
+        Settings::save_config();
+        Settings::save_settings();
     }
     if (Settings::json_settings.contains("ShowKeyTimers")) {
         bool show_key_timers;
@@ -110,9 +119,10 @@ void addon_load(AddonAPI *api_p)
         else
             show_key_timers = Settings::json_settings["ShowKeyTimers"].get<bool>();
         Settings::show_durations = show_key_timers;
-        Settings::json_settings["ShowDurations"] = show_key_timers;
+        Settings::json_config["ShowDurations"] = show_key_timers;
         Settings::json_settings.erase("ShowKeyTimers");
-        Settings::save();
+        Settings::save_config();
+        Settings::save_settings();
     }
     if (Settings::json_settings.contains("KeySize")) {
         float key_size;
@@ -123,7 +133,7 @@ void addon_load(AddonAPI *api_p)
         Settings::json_settings["DefaultKeySize"] = key_size;
         Settings::default_key_size = key_size;
         Settings::json_settings.erase("KeySize");
-        Settings::save();
+        Settings::save_settings();
     }
     if (Settings::json_settings.contains("DisableInChat")) {
         bool disable_in_chat;
@@ -134,7 +144,7 @@ void addon_load(AddonAPI *api_p)
         Settings::json_settings["DisableWhileInChat"] = disable_in_chat;
         Settings::disable_while_in_chat = disable_in_chat;
         Settings::json_settings.erase("DisableInChat");
-        Settings::save();
+        Settings::save_settings();
     }
     if (Settings::json_settings.contains("AlwaysDisplayed"))
         Settings::json_settings.erase("AlwaysDisplayed");
@@ -146,7 +156,7 @@ void addon_load(AddonAPI *api_p)
         Settings::json_settings.erase("PressedKeyColor");
     if (Settings::json_settings.contains("WindowScale"))
         Settings::json_settings.erase("WindowScale");
-    Settings::save();
+    Settings::save_settings();
 
     api->Log(ELogLevel_INFO, addon_name, "addon loaded!");
 }

@@ -19,4 +19,5 @@ bool recording_keypress;
 UINT virtual_key_to_add;
 UINT scan_code_to_add;
 
-std::unordered_map<std::filesystem::path, nlohmann::json> configs;
+std::vector<std::filesystem::path> configs;
+int current_config;
