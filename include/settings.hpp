@@ -1,9 +1,11 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
-#include <UiKey.hpp>
 #include <mutex>
 #include <nlohmann/json.hpp>
+
+class UIKey;
+class OldKey;
 
 void from_json(const nlohmann::json &j, UIKey &key);
 void to_json(nlohmann::json &j, const UIKey &key);

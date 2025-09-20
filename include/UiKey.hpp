@@ -1,22 +1,32 @@
 #ifndef NEXUS_KEYBOARD_OVERLAY_UIKEY_HPP
 #define NEXUS_KEYBOARD_OVERLAY_UIKEY_HPP
 
-#include <filesystem>
+#include <chrono>
 #include <imgui/imgui.h>
 #include <nexus/Nexus.h>
+#include <settings.hpp>
 #include <string>
 #include <utility>
-
-namespace Settings
-{
-extern float default_key_size;
-extern bool show_durations;
-} // namespace Settings
 
 class UIKey
 {
   public:
-    UIKey() = default;
+    UIKey() : m_virtual_key(0), m_scan_code(0), m_pressed(false)
+    {
+        m_pos[0] = 0;
+        m_pos[1] = 0;
+        m_size[0] = Settings::default_key_size;
+        m_size[1] = Settings::default_key_size;
+        m_released_colors[0] = 0.247;
+        m_released_colors[1] = 0.302;
+        m_released_colors[2] = 0.396;
+        m_released_colors[3] = 0.933;
+        m_pressed_colors[0] = 1;
+        m_pressed_colors[1] = 1;
+        m_pressed_colors[2] = 1;
+        m_pressed_colors[3] = 0.933;
+    }
+
     UIKey(const UINT virtual_code, const UINT scan_code, const float released_colors[4], const float pressed_colors[4],
           std::string released_texture_identifier, std::string pressed_texture_identifier, std::string display_text)
         : m_virtual_key(virtual_code), m_scan_code(scan_code),
@@ -144,7 +154,7 @@ class UIKey
     }
 
   private:
-    UINT m_virtual_key{};
+    UINT m_virtual_key;
     UINT m_scan_code;
     float m_pos[2];
     float m_size[2];
@@ -162,7 +172,7 @@ struct OldKey
 {
     std::string m_binding_name;
     std::string m_key_name;
-    unsigned int m_code{};
+    unsigned int m_code;
     bool m_pressed = false;
     ImVec2 m_pos;
     ImVec2 m_size;
