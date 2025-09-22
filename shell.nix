@@ -1,22 +1,13 @@
 {
   mkShell,
-  windows,
   cmake,
   clang-tools,
-  stdenv,
+  bintools,
 }:
 mkShell {
   nativeBuildInputs = [
     cmake
     clang-tools
+    bintools
   ];
-
-  buildInputs = [
-    windows.mingw_w64
-    windows.mingw_w64_headers
-  ];
-
-  shellHook = ''
-    export CPLUS_INCLUDE_PATH="${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}";
-  '';
 }

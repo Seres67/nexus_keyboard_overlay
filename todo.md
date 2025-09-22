@@ -1,6 +1,5 @@
 # TODO / Ideas
 
-- import/export?
 - error when trying to add key that's already added
 - reload when changing keyboard layout:
   - WM_INPUTLANGCHANGE

@@ -2,7 +2,6 @@
 #define SETTINGS_HPP
 
 #include <UiKey.hpp>
-#include <mutex>
 #include <nlohmann/json.hpp>
 
 void from_json(const nlohmann::json &j, UIKey &key);
@@ -21,7 +20,6 @@ extern nlohmann::json json_settings;
 extern nlohmann::json json_config;
 extern std::filesystem::path settings_path;
 extern std::filesystem::path config_path;
-extern std::mutex mutex;
 
 extern std::unordered_map<unsigned int, UIKey> keys;
 extern float background_color[4];

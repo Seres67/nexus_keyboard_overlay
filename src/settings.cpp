@@ -45,7 +45,6 @@ void from_json(const nlohmann::json &j, UIKey &key)
 
 void to_json(nlohmann::json &j, const UIKey &key)
 {
-
     j = nlohmann::json{
         {"virtual_code", key.virtual_code()},
         {"scan_code", key.scan_code()},
@@ -121,8 +120,9 @@ void to_json(nlohmann::json &j, const OldKey &key)
 namespace Settings
 {
 nlohmann::json json_settings;
+std::mutex settings_mutex;
 nlohmann::json json_config;
-std::mutex mutex;
+std::mutex config_mutex;
 std::filesystem::path settings_path;
 std::filesystem::path config_path;
 
@@ -144,7 +144,7 @@ void load_settings()
     }
 
     {
-        std::lock_guard lock(mutex);
+        std::lock_guard lock(settings_mutex);
         try {
             if (std::ifstream file(settings_path); file.is_open()) {
                 json_settings = nlohmann::json::parse(file);
@@ -178,7 +178,7 @@ void save_settings()
         std::filesystem::create_directories(settings_path.parent_path());
     }
     {
-        std::lock_guard lock(mutex);
+        std::lock_guard lock(settings_mutex);
         if (std::ofstream file(settings_path); file.is_open()) {
             file << json_settings.dump(1, '\t') << std::endl;
             file.close();
@@ -195,7 +195,7 @@ void load_config()
     }
 
     {
-        std::lock_guard lock(mutex);
+        std::lock_guard lock(config_mutex);
         try {
             if (std::ifstream file(config_path); file.is_open()) {
                 json_config = nlohmann::json::parse(file);
@@ -206,10 +206,14 @@ void load_config()
             api->Log(ELogLevel_WARNING, addon_name, ex.what());
         }
     }
-    if (!json_config["Keys"].is_null())
+    keys.clear();
+    show_durations = false;
+    if (!json_config["Keys"].is_null()) {
         json_config["Keys"].get_to(keys);
-    if (!json_config["ShowDurations"].is_null())
+    }
+    if (!json_config["ShowDurations"].is_null()) {
         json_config["ShowDurations"].get_to(show_durations);
+    }
 
     api->Log(ELogLevel_INFO, addon_name, "config loaded!");
 }
@@ -220,7 +224,7 @@ void save_config()
         std::filesystem::create_directories(config_path.parent_path());
     }
     {
-        std::lock_guard lock(mutex);
+        std::lock_guard lock(config_mutex);
         if (std::ofstream file(config_path); file.is_open()) {
             file << json_config.dump(1, '\t') << std::endl;
             file.close();
