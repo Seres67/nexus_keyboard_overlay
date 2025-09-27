@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - run: nix build
-    - uses: actions/upload-artifact@v4
+    - uses: https://data.forgejo.org/forgejo/upload-artifact@v4
       with:
         name: nexus_keyboard_overlay
         path: result/lib/*.dll
