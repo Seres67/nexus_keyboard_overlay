@@ -6,19 +6,7 @@ jobs:
   build:
     runs-on: native
     steps:
-    - name: Show environment info
-      run: |
-        echo "Running on user: $(whoami)"
-        echo "Kernel info:"
-        uname -a
-        echo "OS info:"
-        cat /etc/os-release
-        echo "Nix version:"
-        nix --version
     - uses: actions/checkout@v5
-    - uses: https://github.com/cachix/install-nix-action@v31
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
     - run: nix build
     - uses: actions/upload-artifact@v4
       with:
