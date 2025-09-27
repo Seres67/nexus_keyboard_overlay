@@ -1,5 +1,4 @@
 #include <UiKey.hpp>
-#include <exception>
 #include <fstream>
 #include <globals.hpp>
 #include <gui.hpp>
@@ -39,14 +38,15 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     addon_def.Version.Major = 0;
     addon_def.Version.Minor = 9;
     addon_def.Version.Build = 0;
-    addon_def.Version.Revision = 0;
+    addon_def.Version.Revision = 1;
     addon_def.Author = "Seres67";
     addon_def.Description = "Adds a modular keyboard overlay to the game!";
     addon_def.Load = addon_load;
     addon_def.Unload = addon_unload;
     addon_def.Flags = EAddonFlags_None;
-    addon_def.Provider = EUpdateProvider_GitHub;
-    addon_def.UpdateLink = "https://github.com/Seres67/nexus_keyboard_overlay";
+    addon_def.Provider = EUpdateProvider_Direct;
+    addon_def.UpdateLink =
+        "https://git.seres.eu.org/seres/nexus_keyboard_overlay/releases/download/latest/libnexus_keyboard_overlay.dll";
 
     return &addon_def;
 }
