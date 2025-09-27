@@ -10,5 +10,5 @@ jobs:
     - run: nix build
     - uses: https://data.forgejo.org/forgejo/upload-artifact@v4
       with:
-        name: nexus_keyboard_overlay.dll
+        name: nexus_keyboard_overlay.zip
         path: result/lib/*.dll
