@@ -2,3 +2,26 @@ on:
   push:
     branches:
       - main
+jobs:
+  build:
+    runs-on: native:host
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Nix
+      uses: cachix/install-nix-action@v24
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+
+    - name: Build project
+      run: |
+        nix build --show-trace
+
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nexus_keyboard_overlay
+        path: result/lib/*.dll
