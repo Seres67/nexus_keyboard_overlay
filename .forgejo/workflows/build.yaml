@@ -4,7 +4,7 @@ on:
       - main
 jobs:
   build:
-    runs-on: native:host
+    runs-on: native
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
