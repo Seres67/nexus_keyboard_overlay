@@ -1,4 +1,5 @@
 #include <UiKey.hpp>
+#include <filesystem>
 #include <fstream>
 #include <globals.hpp>
 #include <gui.hpp>
@@ -38,7 +39,7 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     addon_def.Version.Major = 0;
     addon_def.Version.Minor = 9;
     addon_def.Version.Build = 0;
-    addon_def.Version.Revision = 1;
+    addon_def.Version.Revision = 2;
     addon_def.Author = "Seres67";
     addon_def.Description = "Adds a modular keyboard overlay to the game!";
     addon_def.Load = addon_load;
@@ -67,6 +68,8 @@ void addon_load(AddonAPI *api_p)
     api->WndProc.Register(wnd_proc);
 
     const std::filesystem::path settings_directory = api->Paths.GetAddonDirectory("keyboard_overlay");
+    if (!std::filesystem::exists(settings_directory))
+        std::filesystem::create_directory(settings_directory);
     textures_directory = settings_directory / "textures";
     if (!std::filesystem::exists(textures_directory))
         std::filesystem::create_directory(textures_directory);
@@ -87,7 +90,8 @@ void addon_load(AddonAPI *api_p)
 
     int i = 0;
     for (auto &file : std::filesystem::directory_iterator(settings_directory)) {
-        if (file.path().extension() != ".json" || file.path().filename() == "settings.json")
+        if (!std::filesystem::exists(file) || file.path().extension() != ".json" ||
+            file.path().filename() == "settings.json")
             continue;
         if (file.path() == Settings::config_path)
             current_config = i;

@@ -72,6 +72,7 @@ void render_window()
     ImGui::ShowDemoWindow();
 #endif
     ImGui::SetNextWindowPos(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing |
                                     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
     if (Settings::lock_window)
