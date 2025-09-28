@@ -4,7 +4,7 @@ on:
       - main
 jobs:
   build:
-    runs-on: native
+    runs-on: nixos-amd64
     steps:
     - uses: actions/checkout@v5
     - run: nix build
