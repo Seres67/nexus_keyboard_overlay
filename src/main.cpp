@@ -48,7 +48,6 @@ extern "C" __declspec(dllexport) AddonDefinition *GetAddonDef()
     addon_def.Provider = EUpdateProvider_Direct;
     addon_def.UpdateLink =
         "https://git.seres.eu.org/seres/nexus_keyboard_overlay/releases/download/latest/libnexus_keyboard_overlay.dll";
-
     return &addon_def;
 }
 
